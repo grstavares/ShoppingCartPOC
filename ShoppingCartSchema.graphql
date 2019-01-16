@@ -1,6 +1,7 @@
 schema {
   query: Query
   mutation: Mutation
+  subscription: Subscription
 }
 
 type Query {
@@ -13,6 +14,10 @@ type Mutation {
     updateProduct(sessionId: String, product: Product!): Boolean
     removeProduct(sessionId: String, sku: String!): Boolean
     clearCart(sessionId: String): Boolean
+}
+
+type Subscription {
+  cartUpdated(sessionId: String): [Product]
 }
 
 type Product {

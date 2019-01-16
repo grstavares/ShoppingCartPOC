@@ -16,36 +16,36 @@ The service will be responsible for the folowing Shopping Cart functionalities:
 
  ![Solution Architecture](ShoppingCart.png)
 
-The service will provide REST and GrapQL endpoints to perform his functionalities based on a defined [API contract](ShoppingCatSwagger.yaml) and [GraphQL schema](ShoppingCartSchema.graphql).
+The service will provide REST and GrapQL endpoints to perform his functionalities based on a defined [API contract](ShoppingCatAPI.yaml) and [GraphQL schema](ShoppingCartSchema.graphql).
 
 ### Service Components
 
 #### Integration Layer
 
-- **REST API Endpoint**: API endpoint that provides access to REST API's. At this implementation will use Amazon API Gateway.
-- **GraphQL Endpoint**:GraphQL endpoint to provide access to query, mutations and subscriptions. In this implementation will use AWS AppSync.
-- **Event Publisher**:Component responsible for emit business events related to the service. In this implementation will use Amazon SNS Topic.
+- **REST API Endpoint**: API endpoint that provides access to REST API's. This implementation will use Amazon API Gateway.
+- **GraphQL Endpoint**:GraphQL endpoint to provide access to query, mutations and subscriptions. This implementation will use AWS AppSync.
+- **Event Publisher**:Component responsible for emit business events related to the service. This implementation will use Amazon SNS Topic.
 
 #### Application Layer
 
-- **Application Logic**: Component responsible for perform Shopping Cart logic and internal service orchestration. In this implementation will use AWS Lambda using Node.js Runtime.
+- **Application Logic**: Component responsible for perform Shopping Cart logic and internal service orchestration. This implementation will use AWS Lambda using Node.js Runtime.
 
 #### Persistence Layer
 
-- **DataStore**: Component responsible for data persistence. In this implementation it will use Amazon DynamoDB.
-- **Data Lake**: Component responsible for historical persistence and event sourcing data for the Shopping Cart. In this implementation will use DynamoDB streams and S3 buckets.
+- **DataStore**: Component responsible for data persistence. This implementation it will use Amazon DynamoDB.
+- **Data Lake**: Component responsible for historical persistence and event sourcing data for the Shopping Cart. This implementation will use DynamoDB streams and S3 buckets.
 
 #### Management Layer
 
-- **Failure Monitor**: Component responsible for observability of the internal service integration. This component will work as a signal of integration problems ocurred in the service. In this implementation will use AWS Cloudwatch Metrics.
+- **Failure Monitor**: Component responsible for observability of the internal service integration. This component will work as a signal of integration problems ocurred in the service. This implementation will use AWS Cloudwatch Metrics.
 
-- **Performance Monitor**: Component responsible for observability of internal service integration in a performance perspective. This component will provide response time and performance observability. In this implementation will use AWS X-Ray.
+- **Performance Monitor**: Component responsible for observability of internal service integration in a performance perspective. This component will provide response time and performance observability. This implementation will use AWS X-Ray.
 
 ### External Components
 
 #### Authentication Provider
 
-Component responsible for management of user pools and user authentication. In this implementation will be used Amazon Cognito User Pools.
+Component responsible for management of user pools and user authentication. This implementation will be used Amazon Cognito User Pools.
 
 ### Business Assumptions
 
