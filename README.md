@@ -16,7 +16,7 @@ The service will be responsible for the folowing Shopping Cart functionalities:
 
  ![Solution Architecture](ShoppingCart.png)
 
-The service will provide REST and GrapQL endpoints to perform his functionalities based on a defined [API contract](ShoppingCatAPI.yaml) and [GraphQL schema](ShoppingCartSchema.graphql).
+The service will provide REST and GrapQL endpoints to perform his functionalities based on a defined [API contract](ShoppingCartAPI.yaml) and [GraphQL schema](ShoppingCartSchema.graphql).
 
 ### Service Components
 
