@@ -1,0 +1,23 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+    cart(sessionId: String): [Product]
+    product(sessionId: String, sku: String!): Product
+}
+
+type Mutation {
+    addToCart(sessionId: String, product: Product!): Boolean
+    updateProduct(sessionId: String, product: Product!): Boolean
+    removeProduct(sessionId: String, sku: String!): Boolean
+    clearCart(sessionId: String): Boolean
+}
+
+type Product {
+  sku: String!
+  name: String!
+  quantity: Int!
+  price: Float!
+}
