@@ -1,145 +1,186 @@
-swagger: "2.0"
+swagger: '2.0'
 info:
-  description: "API for the Shopping Cart POC based on small set of functionalities."
-  version: "1.0.0"
-  title: "ShoppingCart"
-host: "petstore.swagger.io"
-basePath: "/v2"
+  description: API for the Shopping Cart POC based on small set of functionalities.
+  version: 1.0.0
+  title: ShoppingCart
+host: petstore.swagger.io
+basePath: /v2
 schemes:
-- "https"
+  - https
 paths:
   /cart:
     post:
-      summary: "Add a product to Cart"
-      description: ""
-      operationId: "addProduct"
+      summary: Add a product to Cart
+      description: ''
+      operationId: addProduct
       consumes:
-      - "application/json"
+        - application/json
       produces:
-      - "application/json"
+        - application/json
       parameters:
-      - in: "body"
-        name: "body"
-        description: "Product Object"
-        required: true
-        schema:
-          $ref: "#/definitions/Product"
-      responses:
-        200:
-          description: "successful operation"
+        - name: sessionId
+          in: query
+          description: Temporary Id of the session (managed by Frontend)
+          required: false
+          type: string
+        - in: body
+          name: body
+          description: Product Object
+          required: true
           schema:
-            $ref: "#/definitions/Product"      
-        405:
-          description: "Invalid input"
+            $ref: '#/definitions/Product'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Product'
+        '405':
+          description: Invalid input
     get:
-      summary: "Get all products of Cart"
-      description: "Get all products for a authorized User of all products of a Unatorized User with a session Id"
-      operationId: "getAllProducts"
+      summary: Get all products of Cart
+      description: Get all products for a authorized User of all products of a Unatorized User with a session Id
+      operationId: getAllProducts
       produces:
-      - "application/json"
+        - application/json
       parameters:
-      - name: "sessionId"
-        in: "query"
-        description: "Temporary Id of the session (managed by Frontend)"
-        required: false
-        type: "string"
+        - name: sessionId
+          in: query
+          description: Temporary Id of the session (managed by Frontend)
+          required: false
+          type: string
       responses:
-        200:
-          description: "successful operation"
+        '200':
+          description: successful operation
           schema:
-            $ref: "#/definitions/ArrayOfProducts"
-        401:
-          description: "Unauthorized"
-        404:
-          description: "Session ID not found"
+            $ref: '#/definitions/ArrayOfProducts'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Session ID not found
     delete:
-      summary: "Deletes all product from Cart"
-      description: ""
-      operationId: "deleteCart"
+      summary: Deletes all product from Cart
+      description: ''
+      operationId: deleteCart
       parameters:
-      - name: "sessionId"
-        in: "query"
-        description: "Temporary Id of the session (managed by Frontend)"
-        required: false
-        type: "string"
+        - name: sessionId
+          in: query
+          description: Temporary Id of the session (managed by Frontend)
+          required: false
+          type: string
       responses:
-        200:
-          description: "successful operation"
-        404:
-          description: "SessionId not found"
-  /cart/{productSku}:
+        '200':
+          description: successful operation
+        '404':
+          description: SessionId not found
+  '/cart/{productSku}':
     get:
-      summary: "Find product by SKU"
-      description: "Returns a single product inside Cart"
-      operationId: "getProductBySKU"
+      summary: Get product by SKU
+      description: Returns a single product inside Cart
+      operationId: getProductBySKU
       produces:
-      - "application/json"
+        - application/json
       parameters:
-      - name: "productSku"
-        in: "path"
-        description: "Sku of the product to return"
-        required: true
-        type: "string"
+        - name: sessionId
+          in: query
+          description: Temporary Id of the session (managed by Frontend)
+          required: false
+          type: string
+        - name: productSku
+          in: path
+          description: Sku of the product to return
+          required: true
+          type: string
       responses:
-        200:
-          description: "successful operation"
+        '200':
+          description: successful operation
           schema:
-            $ref: "#/definitions/Product"
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Product ID not found"
+            $ref: '#/definitions/Product'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Product ID not found
     put:
-      summary: "Updates a product in the cart with data"
-      description: ""
-      operationId: "updateProduct"
+      summary: Update a product in the cart with data
+      description: ''
+      operationId: updateProduct
       consumes:
-      - "application/json"
+        - application/json
       produces:
-      - "application/json"
+        - application/json
       parameters:
-      - name: "productSku"
-        in: "path"
-        description: "Sku of the product to be updated"
-        required: true
-        type: "string"
+        - name: sessionId
+          in: query
+          description: Temporary Id of the session (managed by Frontend)
+          required: false
+          type: string
+        - name: productSku
+          in: path
+          description: Sku of the product to be updated
+          required: true
+          type: string
       responses:
-        200:
-          description: "successful operation"
+        '200':
+          description: successful operation
           schema:
-            $ref: "#/definitions/Product"
-        404:
-          description: "Product ID not found"
+            $ref: '#/definitions/Product'
+        '404':
+          description: Product ID not found
     delete:
-      summary: "Deletes a product from Cart"
-      description: ""
-      operationId: "deleteProduct"
+      summary: Deletes a product from Cart
+      description: ''
+      operationId: deleteProduct
       parameters:
-      - name: "productSku"
-        in: "path"
-        description: "Product SKU to delete"
-        required: true
-        type: "string"
+        - name: sessionId
+          in: query
+          description: Temporary Id of the session (managed by Frontend)
+          required: false
+          type: string
+        - name: productSku
+          in: path
+          description: Product SKU to delete
+          required: true
+          type: string
       responses:
-        200:
-          description: "successful operation"
-        404:
-          description: "Product SKU not found"
-
+        '200':
+          description: successful operation
+        '404':
+          description: Product SKU not found
+  /conversion:
+    post:
+      summary: Convert and Unauthenticaded Cart to and Authenticated Cart
+      description: ''
+      operationId: convertCart
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: query
+          description: Temporary Id of the session (managed by Frontend)
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Product'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Session Id not Found
 definitions:
   Product:
-    type: "object"
+    type: object
     properties:
       sku:
-        type: "string"
+        type: string
       name:
-        type: "string"
+        type: string
       quantity:
-        type: "integer"
-        format: "int32"
+        type: integer
+        format: int32
       price:
-        type: "number"
-        format: "double"
+        type: number
+        format: double
   ArrayOfProducts:
     type: array
     items:

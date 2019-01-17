@@ -41,6 +41,8 @@ The service will provide REST and GrapQL endpoints to perform his functionalitie
 
 - **Performance Monitor**: Component responsible for observability of internal service integration in a performance perspective. This component will provide response time and performance observability. This implementation will use AWS X-Ray.
 
+- **Service Tracing**: Componente responsible to log and trace service operations. This componenet will concentrate all the operations performed by each of the other componentes of the service. This implementation will use Cloudwatch Logs.
+
 ### External Components
 
 #### Authentication Provider
