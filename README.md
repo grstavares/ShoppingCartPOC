@@ -33,6 +33,7 @@ The service will provide REST and GrapQL endpoints to perform his functionalitie
 #### Persistence Layer
 
 - **DataStore**: Component responsible for data persistence. This implementation it will use Amazon DynamoDB.
+- **Stream Processing**: Component responsible for process data streams from DynamoDB and persist on Data Lake. There are a few options for the implementation of this component. We must choosed based on our expected data volume. For the POC we can use SQS queues and test the service operation with an expected transaction volume.
 - **Data Lake**: Component responsible for historical persistence and event sourcing data for the Shopping Cart. This implementation will use DynamoDB streams and S3 buckets.
 
 #### Management Layer
