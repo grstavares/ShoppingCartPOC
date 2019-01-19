@@ -1,0 +1,88 @@
+{
+    "resource": "/cart",
+    "path": "/cart",
+    "httpMethod": "POST",
+    "headers": {
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept-Language": "pt-br",
+        "Authorization": "abc76543",
+        "Content-Type": "text/plain",
+        "Host": "e68no0840h.execute-api.sa-east-1.amazonaws.com",
+        "User-Agent": "Rested/2009 CFNetwork/902.3.1 Darwin/17.7.0 (x86_64)",
+        "X-Amzn-Trace-Id": "Root=1-5c43668a-307a8edc600b485769a1a755",
+        "X-Forwarded-For": "177.235.72.106",
+        "X-Forwarded-Port": "443",
+        "X-Forwarded-Proto": "https"
+    },
+    "multiValueHeaders": {
+        "Accept": [
+            "*/*"
+        ],
+        "Accept-Encoding": [
+            "gzip, deflate"
+        ],
+        "Accept-Language": [
+            "pt-br"
+        ],
+        "Authorization": [
+            "abc76543"
+        ],
+        "Content-Type": [
+            "text/plain"
+        ],
+        "Host": [
+            "e68no0840h.execute-api.sa-east-1.amazonaws.com"
+        ],
+        "User-Agent": [
+            "Rested/2009 CFNetwork/902.3.1 Darwin/17.7.0 (x86_64)"
+        ],
+        "X-Amzn-Trace-Id": [
+            "Root=1-5c43668a-307a8edc600b485769a1a755"
+        ],
+        "X-Forwarded-For": [
+            "177.235.72.106"
+        ],
+        "X-Forwarded-Port": [
+            "443"
+        ],
+        "X-Forwarded-Proto": [
+            "https"
+        ]
+    },
+    "queryStringParameters": null,
+    "multiValueQueryStringParameters": null,
+    "pathParameters": null,
+    "stageVariables": null,
+    "requestContext": {
+        "resourceId": "thuodz",
+        "resourcePath": "/cart",
+        "httpMethod": "POST",
+        "extendedRequestId": "Twz1rH_umjQFaSA=",
+        "requestTime": "19/Jan/2019:18:03:54 +0000",
+        "path": "/test/cart",
+        "accountId": "831559051193",
+        "protocol": "HTTP/1.1",
+        "stage": "test",
+        "domainPrefix": "e68no0840h",
+        "requestTimeEpoch": 1547921034798,
+        "requestId": "95b3251e-1c14-11e9-b544-c3be12991957",
+        "identity": {
+            "cognitoIdentityPoolId": null,
+            "accountId": null,
+            "cognitoIdentityId": null,
+            "caller": null,
+            "sourceIp": "177.235.72.106",
+            "accessKey": null,
+            "cognitoAuthenticationType": null,
+            "cognitoAuthenticationProvider": null,
+            "userArn": null,
+            "userAgent": "Rested/2009 CFNetwork/902.3.1 Darwin/17.7.0 (x86_64)",
+            "user": null
+        },
+        "domainName": "e68no0840h.execute-api.sa-east-1.amazonaws.com",
+        "apiId": "e68no0840h"
+    },
+    "body": "{\n  \"name\": \"Product Example\",\n  \"price\": 185.45,\n  \"productId\": \"9867\",\n  \"quantity\": 10\n}",
+    "isBase64Encoded": false
+}

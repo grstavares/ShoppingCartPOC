@@ -1,0 +1,88 @@
+{
+    "resource": "/cart/{productSku}",
+    "path": "/cart/9867",
+    "httpMethod": "GET",
+    "headers": {
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept-Language": "pt-br",
+        "Host": "e68no0840h.execute-api.sa-east-1.amazonaws.com",
+        "User-Agent": "Rested/2009 CFNetwork/902.3.1 Darwin/17.7.0 (x86_64)",
+        "X-Amzn-Trace-Id": "Root=1-5c435370-99de0722aae36a8eede7fc35",
+        "X-Forwarded-For": "177.235.72.106",
+        "X-Forwarded-Port": "443",
+        "X-Forwarded-Proto": "https"
+    },
+    "multiValueHeaders": {
+        "Accept": [
+            "*/*"
+        ],
+        "Accept-Encoding": [
+            "gzip, deflate"
+        ],
+        "Accept-Language": [
+            "pt-br"
+        ],
+        "Host": [
+            "e68no0840h.execute-api.sa-east-1.amazonaws.com"
+        ],
+        "User-Agent": [
+            "Rested/2009 CFNetwork/902.3.1 Darwin/17.7.0 (x86_64)"
+        ],
+        "X-Amzn-Trace-Id": [
+            "Root=1-5c435370-99de0722aae36a8eede7fc35"
+        ],
+        "X-Forwarded-For": [
+            "177.235.72.106"
+        ],
+        "X-Forwarded-Port": [
+            "443"
+        ],
+        "X-Forwarded-Proto": [
+            "https"
+        ]
+    },
+    "queryStringParameters": {
+        "sessionId": "abcdef"
+    },
+    "multiValueQueryStringParameters": {
+        "sessionId": [
+            "abcdef"
+        ]
+    },
+    "pathParameters": {
+        "productSku": "9867"
+    },
+    "stageVariables": null,
+    "requestContext": {
+        "resourceId": "jz8gz2",
+        "resourcePath": "/cart/{productSku}",
+        "httpMethod": "GET",
+        "extendedRequestId": "Twn5lHhymjQFUtg=",
+        "requestTime": "19/Jan/2019:16:42:24 +0000",
+        "path": "/test/cart/9867",
+        "accountId": "831559051193",
+        "protocol": "HTTP/1.1",
+        "stage": "test",
+        "domainPrefix": "e68no0840h",
+        "requestTimeEpoch": 1547916144598,
+        "requestId": "32e9d79f-1c09-11e9-bde2-73066bfdb1cc",
+        "identity": {
+            "cognitoIdentityPoolId": null,
+            "accountId": null,
+            "cognitoIdentityId": null,
+            "caller": null,
+            "sourceIp": "177.235.72.106",
+            "accessKey": null,
+            "cognitoAuthenticationType": null,
+            "cognitoAuthenticationProvider": null,
+            "userArn": null,
+            "userAgent": "Rested/2009 CFNetwork/902.3.1 Darwin/17.7.0 (x86_64)",
+            "user": null
+        },
+        "domainName": "e68no0840h.execute-api.sa-east-1.amazonaws.com",
+        "apiId": "e68no0840h"
+    },
+    "body": null,
+    "isBase64Encoded": false
+}

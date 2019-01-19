@@ -1,0 +1,30 @@
+{
+  "name": "shoppingcartpoc",
+  "version": "1.0.0",
+  "description": "POC for Shopping Cart using Microservices Architecture",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "LAMBDA_TESTER_NODE_VERSION_CHECK=false mocha -r ts-node/register tests/**/*.spec.ts",
+    "build": "webpack --config webpack.config.js"
+  },
+  "author": "Gustavo Tavares",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.17",
+    "@types/aws-sdk": "^2.7.0",
+    "@types/chai": "^4.1.7",
+    "@types/lambda-tester": "^3.5.1",
+    "@types/mocha": "^5.2.5",
+    "@types/node": "^10.12.12",
+    "aws-sdk": "^2.389.0",
+    "chai": "^4.2.0",
+    "lambda-tester": "^3.5.0",
+    "mocha": "^5.2.0",
+    "ts-loader": "^5.3.3",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.2.2"
+  },
+  "dependencies": {
+    "aws-xray-sdk": "^2.1.0"
+  }
+}
