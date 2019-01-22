@@ -1,14 +1,15 @@
+/* tslint:disable: no-implicit-dependencies */
 import { Context } from 'aws-lambda';
-import { NoSQLTable, MessageBus, MetricBus } from './common/backend';
+import { MessageBus, MetricBus, NoSQLTable } from './common/backend';
 
 export class DependencyInjector {
 
-    constructor(private context: Context) { }
+    constructor(private readonly context: Context) { }
 
-    getNoSQLTable(): NoSQLTable  { return null }
-    
-    getMessageBus(): MessageBus { return null }
-    
-    getMetricBus(): MetricBus { return null }
+    public getNoSQLTable(): NoSQLTable  { return null; }
+
+    public getMessageBus(): MessageBus { return null; }
+
+    public getMetricBus(): MetricBus { return null; }
 
 }

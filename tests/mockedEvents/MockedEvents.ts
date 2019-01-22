@@ -36,7 +36,7 @@ export class MockedEvents {
 
     getEvent(event: AWSEvent): APIGatewayProxyEvent {
 
-        let filename = "./test/mockedEvents/" + event + '.json'
+        let filename = "./tests/mockedEvents/" + event + '.json'
         let contents = fs.readFileSync(filename,'utf8');
         return JSON.parse(contents)
         

@@ -1,54 +1,58 @@
-import { Context, APIGatewayProxyEvent } from 'aws-lambda';
+/* tslint:disable: no-implicit-dependencies */
+import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 
 export class APIGatewayEventParser {
 
-    constructor(private event: APIGatewayProxyEvent) { }
+    private readonly AuthorizationheaderName = 'Authorization';
 
-    getHttpMethod(): string { return this.event.httpMethod }
-    
-    getUserId(): string {
+    constructor(private readonly event: APIGatewayProxyEvent) { }
 
-        if (this.event.headers == undefined) { return null }
+    public getHttpMethod(): string { return this.event.httpMethod; }
 
-        let value = this.event.headers['Authorization']
-        // console.log(`:::: GetUserId -> ${value}`)
-        return value
+    public getUserId(): string {
+
+        if (this.event.headers == undefined) { return null; }
+
+        const value = this.event.headers[this.AuthorizationheaderName];
+        return value;
 
     }
-    
-    getPathParam(name: string): string {
 
-        if (this.event.pathParameters == undefined) { return null }
+    public getPathParam(name: string): string {
 
-        let value = this.event.pathParameters[name]
+        if (this.event.pathParameters == undefined) { return null; }
+
+        const value = this.event.pathParameters[name];
         // console.log(`:::: GetPathParam (${name}) -> ${value}`)
-        return value
+        return value;
 
     }
 
-    getQueryParam(name: string): string {
-        
-        if (this.event.queryStringParameters == undefined) { return null }
+    public getQueryParam(name: string): string {
 
-        let value = this.event.queryStringParameters[name]
+        if (this.event.queryStringParameters == undefined) { return null; }
+
+        const value = this.event.queryStringParameters[name];
         // console.log(`:::: GetQueryParam (${name}) -> ${value}`)
-        return value
+        return value;
 
     }
 
-    getResource(): string {
-        
-        let value = this.event.resource
+    public getResource(): string {
+
+        const value = this.event.resource;
         // console.log(`:::: GetResourceType -> ${value}`)
-        return value
+        return value;
 
     }
 
-    getPayload(): Object {
+    public getPayload(): Object {
 
-        let value = this.event.body
-        let parsed = JSON.parse(value)
-        return parsed
+        const value = this.event.body;
+        const parsed = JSON.parse(value);
+
+        /* tslint:disable: no-unsafe-any */
+        return parsed;
 
     }
 

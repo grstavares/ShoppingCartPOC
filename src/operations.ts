@@ -1,42 +1,42 @@
-import { Context, APIGatewayProxyEvent } from 'aws-lambda';
+/* tslint:disable no-implicit-dependencies */
+import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 
+/* tslint:disable ordered-imports */
 import { APIGatewayResponse } from './common/types';
-import { ResponseBuilder } from './common'
-
 import { APIGatewayEventParser } from './aws/apigatewayeventparser';
-
 import { CartProduct } from './objectSchemas';
 import { DependencyInjector } from './dependencyInjector';
+import { ResponseBuilder } from './common';
 
 export enum AllowedOperation {
     GetAllProducts = 'GetAllProducts',
-    RemoveAllProducts = "RemoveAllProducts",
+    RemoveAllProducts = 'RemoveAllProducts',
     GetProduct = 'GetProduct',
     AddProduct = 'AddProduct',
     UpdateProduct = 'UpdateProduct',
-    RemoveProduct = "RemoveProduct",
-    ConvertCart = "ConvertCart"
+    RemoveProduct = 'RemoveProduct',
+    ConvertCart = 'ConvertCart',
 }
 
 export enum OperationError {
-    ResourceNotFound = "ResourceNotFound"
+    ResourceNotFound = 'ResourceNotFound',
 }
 
 export class OperationBuilder {
 
-    traceId: string
-    eventParser: APIGatewayEventParser
+    private readonly traceId: string;
+    private readonly eventParser: APIGatewayEventParser;
 
-    constructor(private event: APIGatewayProxyEvent, private context: Context) { 
+    constructor(private readonly event: APIGatewayProxyEvent, private readonly context: Context) {
 
-        this.traceId = context.awsRequestId
-        this.eventParser = new APIGatewayEventParser(event)
+        this.traceId = context.awsRequestId;
+        this.eventParser = new APIGatewayEventParser(event);
 
     }
 
-    getOperation(): AllowedOperation {
-    
-        const resource = this.event.resource
+    public getOperation(): AllowedOperation {
+
+        const resource = this.event.resource;
         const method = this.event.httpMethod;
 
         if (resource.toLowerCase() === '/cart') {
@@ -59,269 +59,271 @@ export class OperationBuilder {
             } else {return null; }
 
         } else { return null; }
-    
+
     }
 
-    executeOperation(resolver: DependencyInjector): Promise<APIGatewayResponse> {
+    public async executeOperation(resolver: DependencyInjector): Promise<APIGatewayResponse> {
 
-        const operation = this.getOperation()
+        const operation = this.getOperation();
         switch (operation) {
-            case 'GetAllProducts': { return this.performGetAllProducts(resolver) }
-            case 'RemoveAllProducts': { return this.performRemoveAllProducts(resolver) }
-            case 'GetProduct': { return this.performGetProduct(resolver) }
-            case 'AddProduct': { return this.performAddProduct(resolver) }
-            case 'UpdateProduct': { return this.performUpdateProduct(resolver) }
-            case 'RemoveProduct': { return this.performRemoveProduct(resolver) }
-            case 'ConvertCart': { return this.performConvertCart(resolver) }
+            case 'GetAllProducts': { return this.performGetAllProducts(resolver); }
+            case 'RemoveAllProducts': { return this.performRemoveAllProducts(resolver); }
+            case 'GetProduct': { return this.performGetProduct(resolver); }
+            case 'AddProduct': { return this.performAddProduct(resolver); }
+            case 'UpdateProduct': { return this.performUpdateProduct(resolver); }
+            case 'RemoveProduct': { return this.performRemoveProduct(resolver); }
+            case 'ConvertCart': { return this.performConvertCart(resolver); }
             default: {
 
-                const response = ResponseBuilder.badRequest("Invalid Request Method", this.traceId);
-                return Promise.reject(response)
+                const response = ResponseBuilder.badRequest('Invalid Request Method', this.traceId);
+                return Promise.reject(response);
 
             }
         }
 
     }
 
-    private performGetAllProducts(resolver: DependencyInjector): Promise<APIGatewayResponse> {
+    private async performGetAllProducts(resolver: DependencyInjector): Promise<APIGatewayResponse> {
 
-        const cartId = this.getCartId()
+        const cartId = this.getCartId();
 
-        if (cartId == null) {
-            const response = ResponseBuilder.unauthorized("", this.traceId)
-            return Promise.reject(response)
+        if (cartId === null) {
+            const response = ResponseBuilder.unauthorized('', this.traceId);
+            return Promise.reject(response);
         }
 
-        let dynamodb = resolver.getNoSQLTable()
-        
-        const keys = { "cartId": cartId }
+        const dynamo = resolver.getNoSQLTable();
+
+        const keys = { cartId: cartId };
         return new Promise((resolve, reject) => {
 
-            dynamodb.queryItemByHashKey(keys)
-            .then(values => {
-    
-                if (values.length > 0) { 
-                    
-                    const response = ResponseBuilder.ok(values)
-                    resolve(response)
+            dynamo.queryItemByHashKey(keys)
+            .then((values) => {
 
-                } else { reject(ResponseBuilder.notFound(JSON.stringify(keys), this.traceId)) } 
-    
-            }).catch(reason => {
-    
-                let response = ResponseBuilder.internalError("REDACTED", this.traceId)
-                reject(response)
-    
-            })
+                if (values.length > 0) {
 
-        });
-
-    }
-    
-    private performRemoveAllProducts(resolver: DependencyInjector): Promise<APIGatewayResponse> {
-
-        const cartId = this.getCartId()
-
-        if (cartId == null) {
-            const response = ResponseBuilder.unauthorized("", this.traceId)
-            return Promise.reject(response)
-        }
-
-        let dynamodb = resolver.getNoSQLTable()
-        
-        const keys = { "cartId": cartId }
-        return new Promise((resolve, reject) => {
-
-            dynamodb.deleteItems(keys)
-            .then(value => {
-    
-                let response = ResponseBuilder.ok({})
-                resolve(response);
-    
-            }).catch(reason => {
-    
-                let response = ResponseBuilder.internalError("REDACTED", this.traceId)
-                reject(response)
-    
-            })
-
-        });
-
-    }
-    
-    private performGetProduct(resolver: DependencyInjector): Promise<APIGatewayResponse> {
-
-        const cartId = this.getCartId()
-        const productSku = this.eventParser.getPathParam("productSku")
-
-        if (cartId == null) {
-            const response = ResponseBuilder.unauthorized("", this.traceId)
-            return Promise.reject(response)
-        }
-
-        if (productSku == null) {
-            const response = ResponseBuilder.badRequest("", this.traceId)
-            return Promise.reject(response)
-        }
-
-        let dynamodb = resolver.getNoSQLTable()
-
-        const keys = { "cartId": cartId, "sku": productSku }
-        return new Promise((resolve, reject) => {
-
-            dynamodb.getItem(keys)
-            .then(value => {
-    
-                if (value != null && value != undefined) {
-
-                    let response = ResponseBuilder.ok(value)
+                    const response = ResponseBuilder.ok(values);
                     resolve(response);
 
-                } else { 
+                } else { reject(ResponseBuilder.notFound(JSON.stringify(keys), this.traceId)); }
 
-                    const response = ResponseBuilder.notFound(JSON.stringify(keys), this.traceId)
-                    reject(response)
+            }).catch((reason) => {
 
-                }
-    
-            }).catch(reason => {
-    
-                let response = ResponseBuilder.internalError("REDACTED", this.traceId)
-                reject(response)
-    
-            })
+                const response = ResponseBuilder.internalError('REDACTED', this.traceId);
+                reject(response);
+
+            });
 
         });
 
     }
-    
-    private performAddProduct(resolver: DependencyInjector): Promise<APIGatewayResponse> { return this.performUpdateProduct(resolver) }
-    
-    private performUpdateProduct(resolver: DependencyInjector): Promise<APIGatewayResponse> {
 
-        const cartId = this.getCartId()
-        const productSku = this.eventParser.getPathParam("productSku")
+    private async performRemoveAllProducts(resolver: DependencyInjector): Promise<APIGatewayResponse> {
 
-        if (cartId == null) {
-            const response = ResponseBuilder.unauthorized("", this.traceId)
-            return Promise.reject(response)
+        const cartId = this.getCartId();
+
+        if (cartId === null) {
+            const response = ResponseBuilder.unauthorized('', this.traceId);
+            return Promise.reject(response);
         }
 
-        if (productSku == null) {
-            const response = ResponseBuilder.badRequest("", this.traceId)
-            return Promise.reject(response)
+        const dynamo = resolver.getNoSQLTable();
+
+        const keys = { cartId: cartId };
+        return new Promise((resolve, reject) => {
+
+            dynamo.deleteItems(keys)
+            .then((value) => {
+
+                const response = ResponseBuilder.ok({});
+                resolve(response);
+
+            }).catch((reason) => {
+
+                const response = ResponseBuilder.internalError('REDACTED', this.traceId);
+                reject(response);
+
+            });
+
+        });
+
+    }
+
+    private async performGetProduct(resolver: DependencyInjector): Promise<APIGatewayResponse> {
+
+        const cartId = this.getCartId();
+        const productSku = this.eventParser.getPathParam('productSku');
+
+        if (cartId === null) {
+            const response = ResponseBuilder.unauthorized('', this.traceId);
+            return Promise.reject(response);
         }
 
-        const keys = { "cartId": cartId, "sku": productSku }
+        if (productSku === null) {
+            const response = ResponseBuilder.badRequest('', this.traceId);
+            return Promise.reject(response);
+        }
+
+        const dynamo = resolver.getNoSQLTable();
+
+        const keys = { cartId: cartId, sku: productSku };
+        return new Promise((resolve, reject) => {
+
+            dynamo.getItem(keys).then((value) => {
+
+                if (value !== null && value !== undefined) {
+
+                    const response = ResponseBuilder.ok(value);
+                    resolve(response);
+
+                } else {
+
+                    const response = ResponseBuilder.notFound(JSON.stringify(keys), this.traceId);
+                    reject(response);
+
+                }
+
+            }).catch((reason) => {
+
+                const response = ResponseBuilder.internalError('REDACTED', this.traceId);
+                reject(response);
+
+            });
+
+        });
+
+    }
+
+    private async performAddProduct(resolver: DependencyInjector): Promise<APIGatewayResponse> { return this.performUpdateProduct(resolver); }
+
+    private async performUpdateProduct(resolver: DependencyInjector): Promise<APIGatewayResponse> {
+
+        const cartId = this.getCartId();
+        const productSku = this.eventParser.getPathParam('productSku');
+
+        if (cartId === null) {
+            const response = ResponseBuilder.unauthorized('', this.traceId);
+            return Promise.reject(response);
+        }
+
+        if (productSku === null) {
+            const response = ResponseBuilder.badRequest('', this.traceId);
+            return Promise.reject(response);
+        }
+
+        const keys = { cartId: cartId, sku: productSku };
         const object = this.eventParser.getPayload();
-        const keyedObject = Object.assign(keys, object)
+
+        /* tslint:disable: prefer-object-spread */
+        const keyedObject = Object.assign(keys, object);
 
         if (!this.isValidEventBody(keyedObject)) {
-            const response = ResponseBuilder.badRequest("", this.traceId)
-            return Promise.reject(response)
+            const response = ResponseBuilder.badRequest('', this.traceId);
+            return Promise.reject(response);
         }
 
-        let dynamodb = resolver.getNoSQLTable()
+        const dynamo = resolver.getNoSQLTable();
 
         return new Promise((resolve, reject) => {
 
-            dynamodb.putItem(keys, keyedObject)
-            .then(value => {
-    
-                if (value != null && value != undefined) {
+            dynamo.putItem(keys, keyedObject)
+            .then((value) => {
 
-                    let response = ResponseBuilder.ok(keyedObject)
+                if (value !== null && value !== undefined) {
+
+                    const response = ResponseBuilder.ok(keyedObject);
                     resolve(response);
 
-                } else { 
+                } else {
 
-                    const response = ResponseBuilder.notFound(JSON.stringify(keyedObject), this.traceId)
-                    reject(response)
+                    const response = ResponseBuilder.notFound(JSON.stringify(keyedObject), this.traceId);
+                    reject(response);
 
                 }
-    
-            }).catch(reason => {
-    
-                let response = ResponseBuilder.internalError("REDACTED", this.traceId)
-                reject(response)
-    
-            })
+
+            }).catch((reason) => {
+
+                const response = ResponseBuilder.internalError('REDACTED', this.traceId);
+                reject(response);
+
+            });
 
         });
 
     }
-    
-    private performRemoveProduct(resolver: DependencyInjector): Promise<APIGatewayResponse> {
 
-        const cartId = this.getCartId()
-        const productSku = this.eventParser.getPathParam("productSku")
+    private async performRemoveProduct(resolver: DependencyInjector): Promise<APIGatewayResponse> {
 
-        if (cartId == null) {
-            const response = ResponseBuilder.unauthorized("", this.traceId)
-            return Promise.reject(response)
+        const cartId = this.getCartId();
+        const productSku = this.eventParser.getPathParam('productSku');
+
+        if (cartId === null) {
+            const response = ResponseBuilder.unauthorized('', this.traceId);
+            return Promise.reject(response);
         }
 
-        if (productSku == null) {
-            const response = ResponseBuilder.badRequest("", this.traceId)
-            return Promise.reject(response)
+        if (productSku === null) {
+            const response = ResponseBuilder.badRequest('', this.traceId);
+            return Promise.reject(response);
         }
 
-        let dynamodb = resolver.getNoSQLTable()
+        const dynamodb = resolver.getNoSQLTable();
 
-        const keys = { "cartId": cartId, "sku": productSku }
+        const keys = { cartId: cartId, sku: productSku };
         return new Promise((resolve, reject) => {
 
             dynamodb.deleteItems(keys)
-            .then(value => {
+            .then((value) => {
 
-                let response = ResponseBuilder.ok({})
+                const response = ResponseBuilder.ok({});
                 resolve(response);
-    
-            }).catch(reason => {
-    
-                let response = ResponseBuilder.internalError("REDACTED", this.traceId)
-                reject(response)
-    
-            })
+
+            }).catch((reason) => {
+
+                const response = ResponseBuilder.internalError('REDACTED', this.traceId);
+                reject(response);
+
+            });
 
         });
 
     }
-    
-    private performConvertCart(resolver: DependencyInjector): Promise<APIGatewayResponse> {
 
-        return Promise.reject()
+    private async performConvertCart(resolver: DependencyInjector): Promise<APIGatewayResponse> {
 
-    }
-
-    getCartId(): string {
-
-        const userId = this.eventParser.getUserId()
-        if (userId != null && userId != undefined) { return userId }
-
-        const sessionId = this.eventParser.getQueryParam("sessionId")
-        if (this.isValidSessionId(sessionId)) { return sessionId }
-
-        return null
+        return Promise.reject();
 
     }
 
-    isValidEventBody(object: any): object is CartProduct { 
-    
-        if (object.sku == undefined) { return false }
-        if (object.name == undefined) { return false }
-        if (object.price == undefined) { return false }
-        if (object.quantity == undefined) { return false }
-        return true
-    
+    private getCartId(): string {
+
+        const userId = this.eventParser.getUserId();
+        if (userId !== null && userId !== undefined) { return userId; }
+
+        const sessionId = this.eventParser.getQueryParam('sessionId');
+        if (this.isValidSessionId(sessionId)) { return sessionId; }
+
+        return null;
+
     }
 
-    isValidSessionId(session: string) { 
+    /* tslint:disable no-unsafe-any */
+    private isValidEventBody(object: any): object is CartProduct {
 
-        if (session == null || session == undefined) { return false }
+        if (object.sku == undefined) { return false; }
+        if (object.name == undefined) { return false; }
+        if (object.price == undefined) { return false; }
+        if (object.quantity == undefined) { return false; }
+        return true;
 
-        //Check SessionId Format
-        return true
+    }
+
+    private isValidSessionId(session: string) {
+
+        if (session === null || session == undefined) { return false; }
+
+        // Check SessionId Format
+        return true;
 
     }
 
