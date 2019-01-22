@@ -60,6 +60,38 @@ export class OperationBuilder {
 
     }
 
+    public getCartId(): string {
+
+        const userId = this.eventParser.getUserId();
+        if (userId !== null && userId !== undefined) { return userId; }
+
+        const sessionId = this.eventParser.getQueryParam('sessionId');
+        if (this.isValidSessionId(sessionId)) { return sessionId; }
+
+        return null;
+
+    }
+
+    /* tslint:disable no-unsafe-any */
+    public isValidEventBody(object: any): object is CartProduct {
+
+        if (object.sku == undefined) { return false; }
+        if (object.name == undefined) { return false; }
+        if (object.price == undefined) { return false; }
+        if (object.quantity == undefined) { return false; }
+        return true;
+
+    }
+
+    public isValidSessionId(session: string) {
+
+        if (session === null || session == undefined) { return false; }
+
+        // Check SessionId Format
+        return true;
+
+    }
+
     public async executeOperation(resolver: DependencyInjector): Promise<APIGatewayResponse> {
 
         const operation = this.getOperation();
@@ -290,38 +322,6 @@ export class OperationBuilder {
     private async performConvertCart(resolver: DependencyInjector): Promise<APIGatewayResponse> {
 
         return Promise.reject();
-
-    }
-
-    private getCartId(): string {
-
-        const userId = this.eventParser.getUserId();
-        if (userId !== null && userId !== undefined) { return userId; }
-
-        const sessionId = this.eventParser.getQueryParam('sessionId');
-        if (this.isValidSessionId(sessionId)) { return sessionId; }
-
-        return null;
-
-    }
-
-    /* tslint:disable no-unsafe-any */
-    private isValidEventBody(object: any): object is CartProduct {
-
-        if (object.sku == undefined) { return false; }
-        if (object.name == undefined) { return false; }
-        if (object.price == undefined) { return false; }
-        if (object.quantity == undefined) { return false; }
-        return true;
-
-    }
-
-    private isValidSessionId(session: string) {
-
-        if (session === null || session == undefined) { return false; }
-
-        // Check SessionId Format
-        return true;
 
     }
 
