@@ -17,6 +17,7 @@
     "@types/mocha": "^5.2.5",
     "@types/node": "^10.12.12",
     "chai": "^4.2.0",
+    "dynamodb-localhost": "0.0.7",
     "lambda-tester": "^3.5.0",
     "mocha": "^5.2.0",
     "ts-loader": "^5.3.3",

@@ -1,3 +1,4 @@
+/* tslint:disable all */
 import { MockedEvents, AWSEvent } from './mockedEvents/MockedEvents';
 import { expect, should } from 'chai';
 import 'mocha';

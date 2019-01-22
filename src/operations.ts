@@ -1,12 +1,10 @@
 /* tslint:disable no-implicit-dependencies */
 import { APIGatewayProxyEvent, Context } from 'aws-lambda';
-
-/* tslint:disable ordered-imports */
-import { APIGatewayResponse } from './common/types';
 import { APIGatewayEventParser } from './aws/apigatewayeventparser';
-import { CartProduct } from './objectSchemas';
-import { DependencyInjector } from './dependencyInjector';
 import { ResponseBuilder } from './common';
+import { APIGatewayResponse } from './common/types';
+import { DependencyInjector } from './dependencyInjector';
+import { CartProduct } from './objectSchemas';
 
 export enum AllowedOperation {
     GetAllProducts = 'GetAllProducts',

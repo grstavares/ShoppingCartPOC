@@ -8,7 +8,7 @@
         "Accept-Language": "pt-br",
         "Authorization": "abc76543",
         "Content-Type": "text/plain",
-        "Host": "e68no0840h.execute-api.sa-east-1.amazonaws.com",
+        "Host": "a12bc3456d.execute-api.sa-east-1.amazonaws.com",
         "User-Agent": "Rested/2009 CFNetwork/902.3.1 Darwin/17.7.0 (x86_64)",
         "X-Amzn-Trace-Id": "Root=1-5c43529b-9ac8ea8fc5227d404f004122",
         "X-Forwarded-For": "177.235.72.106",
@@ -32,7 +32,7 @@
             "text/plain"
         ],
         "Host": [
-            "e68no0840h.execute-api.sa-east-1.amazonaws.com"
+            "a12bc3456d.execute-api.sa-east-1.amazonaws.com"
         ],
         "User-Agent": [
             "Rested/2009 CFNetwork/902.3.1 Darwin/17.7.0 (x86_64)"
@@ -61,10 +61,10 @@
         "extendedRequestId": "TwnYXEdbmjQFrOg=",
         "requestTime": "19/Jan/2019:16:38:51 +0000",
         "path": "/test/cart/",
-        "accountId": "831559051193",
+        "accountId": "123456789012",
         "protocol": "HTTP/1.1",
         "stage": "test",
-        "domainPrefix": "e68no0840h",
+        "domainPrefix": "a12bc3456d",
         "requestTimeEpoch": 1547915931983,
         "requestId": "b42f36f0-1c08-11e9-b179-e7c63a9b47ee",
         "identity": {
@@ -80,8 +80,8 @@
             "userAgent": "Rested/2009 CFNetwork/902.3.1 Darwin/17.7.0 (x86_64)",
             "user": null
         },
-        "domainName": "e68no0840h.execute-api.sa-east-1.amazonaws.com",
-        "apiId": "e68no0840h"
+        "domainName": "a12bc3456d.execute-api.sa-east-1.amazonaws.com",
+        "apiId": "a12bc3456d"
     },
     "body": null,
     "isBase64Encoded": false

@@ -8,7 +8,7 @@
         "Accept-Language": "pt-br",
         "Authorization": "abc76543",
         "Content-Type": "text/plain",
-        "Host": "e68no0840h.execute-api.sa-east-1.amazonaws.com",
+        "Host": "a12bc3456d.execute-api.sa-east-1.amazonaws.com",
         "User-Agent": "Rested/2009 CFNetwork/902.3.1 Darwin/17.7.0 (x86_64)",
         "X-Amzn-Trace-Id": "Root=1-5c4366e4-648c42be5b994bd9d6e1f8f0",
         "X-Forwarded-For": "177.235.72.106",
@@ -32,7 +32,7 @@
             "text/plain"
         ],
         "Host": [
-            "e68no0840h.execute-api.sa-east-1.amazonaws.com"
+            "a12bc3456d.execute-api.sa-east-1.amazonaws.com"
         ],
         "User-Agent": [
             "Rested/2009 CFNetwork/902.3.1 Darwin/17.7.0 (x86_64)"
@@ -63,10 +63,10 @@
         "extendedRequestId": "Tw0DpFDJmjQFQfA=",
         "requestTime": "19/Jan/2019:18:05:24 +0000",
         "path": "/test/cart/9867",
-        "accountId": "831559051193",
+        "accountId": "123456789012",
         "protocol": "HTTP/1.1",
         "stage": "test",
-        "domainPrefix": "e68no0840h",
+        "domainPrefix": "a12bc3456d",
         "requestTimeEpoch": 1547921124110,
         "requestId": "caef1313-1c14-11e9-a5ba-335bcbff6625",
         "identity": {
@@ -82,8 +82,8 @@
             "userAgent": "Rested/2009 CFNetwork/902.3.1 Darwin/17.7.0 (x86_64)",
             "user": null
         },
-        "domainName": "e68no0840h.execute-api.sa-east-1.amazonaws.com",
-        "apiId": "e68no0840h"
+        "domainName": "a12bc3456d.execute-api.sa-east-1.amazonaws.com",
+        "apiId": "a12bc3456d"
     },
     "body": "{\n  \"name\": \"Product Example\",\n  \"price\": 185.45,\n  \"productId\": \"9867\",\n  \"quantity\": 10\n}",
     "isBase64Encoded": false
