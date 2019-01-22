@@ -126,7 +126,7 @@ export class OperationBuilder {
         return new Promise((resolve, reject) => {
 
             resolver.getNoSQLTable()
-            .then((dynamo) => dynamo.queryItemByHashKey(keys))
+            .then(async (dynamo) => dynamo.queryItemByHashKey(keys))
             .then((values) => {
 
                 if (values.length > 0) {
@@ -220,7 +220,7 @@ export class OperationBuilder {
         return new Promise((resolve, reject) => {
 
             resolver.getNoSQLTable()
-            .then((dynamo) => dynamo.getItem(keys))
+            .then(async (dynamo) => dynamo.getItem(keys))
             .then((value) => {
 
                 if (value !== null && value !== undefined) {
@@ -348,7 +348,7 @@ export class OperationBuilder {
         return new Promise((resolve, reject) => {
 
             resolver.getNoSQLTable()
-            .then((dynamo) => dynamo.deleteItems(keys))
+            .then(async (dynamo) => dynamo.deleteItems(keys))
             .then((value) => {
 
                 const response = ResponseBuilder.ok({});

@@ -1,7 +1,8 @@
 /* tslint:disable:no-implicit-dependencies */
 import { AWSError, DynamoDB } from 'aws-sdk';
 import { NoSQLTable } from '../common/backend';
-import { APIGatewayResponse, ServiceError } from './../common/types.d';
+import { ServiceError } from './../common/types.d';
+import { AWSErrorParser } from './awserrorparser';
 
 /* tslint:disable:no-var-requires */
 const AWSXRay = require('aws-xray-sdk');
@@ -108,25 +109,27 @@ export class DynamoDBTable implements NoSQLTable {
 
     private parseAWSError(error: AWSError, resource: { type: string; name: string }): ServiceError {
 
-        let errorCode  = 'undefined';
-        let httpCode = 500;
-        const resourceDescription = JSON.stringify(resource);
+        return AWSErrorParser.parseAWSError(error, resource);
 
-        switch (error.code.toLowerCase()) {
-            case 'networkingerror':
-                errorCode = 'NetworkError';
-                httpCode = 500;
-                break;
-            case 'missingrequiredparameter':
-                errorCode = 'InvalidObjectBody';
-                httpCode = 400;
-                break;
-            default:
-                console.log('AWSError not identified!');
-                console.log(error);
-        }
+        // let errorCode  = 'undefined';
+        // let httpCode = 500;
+        // const resourceDescription = JSON.stringify(resource);
 
-        return {code: errorCode, httpStatusCode: httpCode, resource: resourceDescription, payload: error};
+        // switch (error.code.toLowerCase()) {
+        //     case 'networkingerror':
+        //         errorCode = 'NetworkError';
+        //         httpCode = 500;
+        //         break;
+        //     case 'missingrequiredparameter':
+        //         errorCode = 'InvalidObjectBody';
+        //         httpCode = 400;
+        //         break;
+        //     default:
+        //         console.log('AWSError not identified!');
+        //         console.log(error);
+        // }
+
+        // return {logTag: 'ERROR::', code: errorCode, httpStatusCode: httpCode, resource: resourceDescription, payload: error};
 
     }
 

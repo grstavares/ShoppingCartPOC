@@ -16,6 +16,7 @@ export interface InfrastructureMetric {
 }
 
 export interface ServiceError {
+    logTag: 'ERROR::';
     code: string;
     httpStatusCode: number;
     resource?: string;

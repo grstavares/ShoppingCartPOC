@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "test": "LAMBDA_TESTER_NODE_VERSION_CHECK=false mocha -r ts-node/register tests/**/*.spec.ts",
-    "build": "webpack --config webpack.config.js"
+    "build": "npm run test && webpack --config webpack.config.js"
   },
   "author": "Gustavo Tavares",
   "license": "ISC",

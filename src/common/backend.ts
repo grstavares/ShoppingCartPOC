@@ -1,5 +1,10 @@
 import { AwsSnsMessage, InfrastructureMetric } from './types';
 
+export enum BackendMetrics {
+    DependencyNotConfigured = 'DependencyNotConfigured',
+    DependencyNotAvailable = 'DependencyNotAvailable',
+}
+
 export interface NoSQLTable {
     getItem(keys: {[key: string]: any}): Promise<Object>;
     queryItemByHashKey(keys: {[key: string]: any}): Promise<Object[]>;
