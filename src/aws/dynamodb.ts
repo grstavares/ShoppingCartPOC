@@ -10,16 +10,17 @@ export class DynamoDBTable implements NoSQLTable {
 
     private readonly dynamoDB: DynamoDB;
 
-    constructor(private readonly tableName: string) {
+    constructor(private readonly tableName: string, dynamodb?: DynamoDB) {
 
         /* tslint:disable:no-unsafe-any */
-        this.dynamoDB = AWSXRay.captureAWSClient(new DynamoDB());
+        this.dynamoDB = (dynamodb === null || dynamodb == undefined) ? AWSXRay.captureAWSClient(new DynamoDB()) : dynamodb;
 
     }
 
     public async getItem(keys: {[key: string]: any}): Promise<Object> {
 
-        const getItemParams: DynamoDB.GetItemInput = { Key: keys, TableName: this.tableName, ReturnConsumedCapacity: 'TOTAL' };
+        const parsedKeys = this.marshalObject(keys);
+        const getItemParams: DynamoDB.GetItemInput = { Key: parsedKeys, TableName: this.tableName, ReturnConsumedCapacity: 'TOTAL' };
 
         return new Promise((resolve: Function, reject: Function) => {
 
@@ -34,10 +35,13 @@ export class DynamoDBTable implements NoSQLTable {
     public async queryItemByHashKey(keys: {[key: string]: any}): Promise<Object[]> {
 
         const queryKeys = Object.keys(keys);
+        const hashKeyName = { '#keyname': queryKeys[0] };
+        const hashKeyValue = { ':keyvalue': keys[queryKeys[0]] };
+        const parsedKeyValue = this.marshalObject(hashKeyValue);
 
         const queryItemParams: DynamoDB.QueryInput = {
-            ExpressionAttributeNames: { '#keyname': queryKeys[0] },
-            ExpressionAttributeValues: { ':keyvalue': keys[queryKeys[0]] },
+            ExpressionAttributeNames: hashKeyName,
+            ExpressionAttributeValues: parsedKeyValue,
             KeyConditionExpression: '#keyname = :keyvalue',
             ReturnConsumedCapacity: 'TOTAL',
             TableName: this.tableName,
@@ -75,7 +79,8 @@ export class DynamoDBTable implements NoSQLTable {
 
     public async deleteItems(keys: { [key: string]: any }): Promise<boolean> {
 
-        const deleteItemParams: DynamoDB.DeleteItemInput = { Key: keys, TableName: this.tableName, ReturnConsumedCapacity: 'TOTAL' };
+        const parsedKeys = this.marshalObject(keys);
+        const deleteItemParams: DynamoDB.DeleteItemInput = { Key: parsedKeys, TableName: this.tableName, ReturnConsumedCapacity: 'TOTAL' };
 
         return new Promise((resolve: Function, reject: Function) => {
 
@@ -96,7 +101,7 @@ export class DynamoDBTable implements NoSQLTable {
 
     private unmarshalObject(object: DynamoDB.AttributeMap): Object {
 
-        const unmarshsalled = DynamoDB.Converter.unmarshall(object, { convertEmptyValues: true, wrapNumbers: true });
+        const unmarshsalled = DynamoDB.Converter.unmarshall(object, { convertEmptyValues: true, wrapNumbers: false });
         return unmarshsalled;
 
     }

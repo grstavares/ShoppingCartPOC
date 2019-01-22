@@ -1,44 +1,84 @@
 /* tslint:disable all */
-import { handler } from '../src/index'
+import { handler, setInjector } from '../src/index'
 import 'mocha';
 import { expect, should } from 'chai';
 import lambdaTester = require('lambda-tester');
 
 import { MockedEvents, AWSEvent } from './mockedEvents/MockedEvents';
+import { KeySchema, AttributeDefinitions } from 'aws-sdk/clients/dynamodb';
+import { DynamoDBMock, LocalDynamoConfiguration } from './mockedDependencies/dynamoMock';
+import { DependencyInjector } from '../src/dependencyInjector';
+import { DependencyInjectorMock } from './mockedDependencies/injectorMock';
+
+let mockedEvents:MockedEvents;
+let mockedInjector: DependencyInjectorMock;
+let mockedDynamo: DynamoDBMock;
 
 describe('Lambda Handler', () => {
 
+    before(function(done) {
+
+        mockedEvents = new MockedEvents();
+
+        const tableNames = ['ShopingCart'];
+        const tableKeys: KeySchema[] = [ [{ AttributeName: 'cartId', KeyType: 'HASH'}, { AttributeName: 'sku', KeyType: 'RANGE'}] ];
+        const tableAttributes: AttributeDefinitions[] = [ [{ AttributeName: 'cartId', AttributeType: 'S' }, { AttributeName: 'sku', AttributeType: 'S' }] ];
+
+        this.timeout(10000);
+        const dynamoconfig: LocalDynamoConfiguration = {
+            tableNames: tableNames,
+            tableKeys: tableKeys,
+            tableAttributes: tableAttributes,
+        };
+
+        const context = mockedEvents.getContext();
+        mockedDynamo = new DynamoDBMock(dynamoconfig);
+        mockedDynamo.start()
+        .then((result) => { 
+            mockedInjector = new DependencyInjectorMock(context, mockedDynamo.rawDynamo, tableNames[0]);
+            done();
+        })
+        .catch((error) => {throw new Error(error); });
+
+    });
+
     // CART GET
-    it('Cart::Get OK response when send an Authenticated Post Request', async () => {
+    it('Cart::Get OK response when send an Authenticated Get Request', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.CartGetAuthorized);
+        const objectId = mocked.headers['Authorization']
+        const object = { cartId: objectId, sku: '12345', name: 'Example', quantity: 10, price: 15.5};
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(200).to.eql(result.statusCode);
-        });
+        const response = await mockedInjector.injectItemOnTable({ cartId: object.cartId, sku: object.sku}, object)
+        .then((result) => { return lambdaTester(handler).event(mocked)});
+
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(200) });
+
 
     });
 
     it('Cart::Get OK response when send an Unauthenticated Get Request with SessionId', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.CartGetUnauthorizedWithSessionId);
+        const objectId = mocked.queryStringParameters['sessionId']
+        const object = { cartId: objectId, sku: '12345', name: 'Example', quantity: 10, price: 15.5};
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(200).to.eql(result.statusCode);
-        });
+        const response = await mockedInjector.injectItemOnTable({ cartId: object.cartId, sku: object.sku}, object)
+        .then((result) => { return lambdaTester(handler).event(mocked)});
 
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(200) });
+        
     });
 
     it('Cart::Get Unauthorized response when send an Unauthenticated Get Request without SessionId', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.CartGetUnauthorized);
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(401).to.eql(result.statusCode);
-        });
+        const response = await lambdaTester(handler).event(mocked);
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(401) });
 
     });
 
@@ -46,228 +86,274 @@ describe('Lambda Handler', () => {
     // CART CLEARANCE
     it('Cart::Get OK response when send an Authenticated Delete Request', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.CartDeleteAuthorized);
+        const objectId = mocked.headers['Authorization']
+        const object = { cartId: objectId, sku: '12345', name: 'Example', quantity: 10, price: 15.5};
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(200).to.eql(result.statusCode);
-        });
+        const response = await mockedInjector.injectItemOnTable({ cartId: object.cartId, sku: object.sku}, object)
+        .then((result) => { return lambdaTester(handler).event(mocked)});
+
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(200) });
 
     });
 
     it('Cart::Get OK response when send an Unauthenticated Delete Request with SessionId', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.CartDeleteUnauthorizedWithSessionId);
+        const objectId = mocked.queryStringParameters['sessionId']
+        const object = { cartId: objectId, sku: '12345', name: 'Example', quantity: 10, price: 15.5};
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(200).to.eql(result.statusCode);
-        });
+        const response = await mockedInjector.injectItemOnTable({ cartId: object.cartId, sku: object.sku}, object)
+        .then((result) => { return lambdaTester(handler).event(mocked)});
+
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(200) });
 
     });
 
     it('Cart::Get Unauthorized response when send an Unauthenticated Delete Request without SessionId', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.CartDeleteUnauthorized);
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(401).to.eql(result.statusCode);
-        });
+        const response = await lambdaTester(handler).event(mocked);
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(401) });
 
     });
 
     // PRODUCT GET
     it('Product::Get OK response when send an Authenticated Get Request', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.ProductGetAuthorized);
+        const objectId = mocked.headers['Authorization']
+        const rangeKey = mocked.pathParameters['productSku']
+        const object = { cartId: objectId, sku: rangeKey, name: 'Example', quantity: 10, price: 15.5};
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(200).to.eql(result.statusCode);
-        });
+        const response = await mockedInjector.injectItemOnTable({ cartId: object.cartId, sku: object.sku}, object)
+        .then((result) => { return lambdaTester(handler).event(mocked)});
+
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(200) });
 
     });
 
     it('Product::Get OK response when send an Unauthenticated Get Request with SessionId', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.ProductGetUnauthorizedWithSessionId);
+        const objectId = mocked.queryStringParameters['sessionId']
+        const rangeKey = mocked.pathParameters['productSku']
+        const object = { cartId: objectId, sku: rangeKey, name: 'Example', quantity: 10, price: 15.5};
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(200).to.eql(result.statusCode);
-        });
+        const response = await mockedInjector.injectItemOnTable({ cartId: object.cartId, sku: object.sku}, object)
+        .then((result) => { return lambdaTester(handler).event(mocked)});
+
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(200) });
 
     });
 
     it('Product::Get Unauthorized response when send an Unauthenticated Get Request without SessionId', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.ProductGetUnauthorized);
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(401).to.eql(result.statusCode);
-        });
+        const response = await lambdaTester(handler).event(mocked);
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(401) });
 
     });
 
     // PRODUCT POST
     it('Product::Get Created response when send an Authenticated Post Request', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.ProductPostAuthorized);
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(201).to.eql(result.statusCode);
-        });
+        const response = await lambdaTester(handler).event(mocked)
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(201) });
 
     });
 
-    it('Product::Get OK response when send an Unauthenticated Post Request with SessionId', async () => {
+    it('Product::Get Created response when send an Unauthenticated Post Request with SessionId', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.ProductPostUnauthorizedWithSessionId);
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(200).to.eql(result.statusCode);
-        });
+        const response = await lambdaTester(handler).event(mocked)
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(201) });
 
     });
 
     it('Product::Get Bad Request response when send an Authenticated Post Request with Invalid Object', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.ProductPostAuthorizedwithInvalidBody);
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(403).to.eql(result.statusCode);
-        });
+        const response = await lambdaTester(handler).event(mocked)
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(400) });
 
     });
 
     it('Product::Get Unauthorized response when send an Unauthenticated Post Request without SessionId', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.ProductPostUnauthorized);
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(401).to.eql(result.statusCode);
-        });
+        const response = await lambdaTester(handler).event(mocked)
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(401) });
 
     });
 
     // PRODUCT PUT
     it('Product::Get OK response when send an Authenticated Put Request', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.ProductPutAuthorized);
+        const objectId = mocked.headers['Authorization']
+        const rangeKey = mocked.pathParameters['productSku']
+        const object = { cartId: objectId, sku: rangeKey, name: 'Example', quantity: 10, price: 15.5};
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(200).to.eql(result.statusCode);
-        });
+        const response = await mockedInjector.injectItemOnTable({ cartId: object.cartId, sku: object.sku}, object)
+        .then((result) => { return lambdaTester(handler).event(mocked)});
+
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(200) });
 
     });
 
     it('Product::Get OK response when send an Unauthenticated Put Request with SessionId', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.ProductPutUnauthorizedWithSessionId);
+        const objectId = mocked.queryStringParameters['sessionId']
+        const rangeKey = mocked.pathParameters['productSku']
+        const object = { cartId: objectId, sku: rangeKey, name: 'Example', quantity: 10, price: 15.5};
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(200).to.eql(result.statusCode);
-        });
+        const response = await mockedInjector.injectItemOnTable({ cartId: object.cartId, sku: object.sku}, object)
+        .then((result) => { return lambdaTester(handler).event(mocked)});
+
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(200) });
 
     });
 
     it('Product::Get Bad Request response when send a Put Request with Invalid Object', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
+        const persisted = mockedEvents.getEvent(AWSEvent.ProductPutAuthorized);
+        const objectId = persisted.headers['Authorization']
+        const rangeKey = persisted.pathParameters['productSku']
+        const object = { cartId: objectId, sku: rangeKey, name: 'Example', quantity: 10, price: 15.5};
+
         const mocked = mockedEvents.getEvent(AWSEvent.ProductPutAuthorizedwithInvalidBody);
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(403).to.eql(result.statusCode);
-        });
+        const response = await mockedInjector.injectItemOnTable({ cartId: object.cartId, sku: object.sku}, object)
+        .then((result) => { return lambdaTester(handler).event(mocked)});
+
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(400) });
 
     });
 
     it('Product::Get Unauthorized response when send an Unauthenticated Put Request without SessionId', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.ProductPutUnauthorized);
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(401).to.eql(result.statusCode);
-        });
+        const response = await lambdaTester(handler).event(mocked)
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(401) });
 
     });
 
     // PRODUCT DELETE
     it('Product::Get Ok response when send an Authenticated Delete Request', async () => {
-
-        const mockedEvents = new MockedEvents();
+        
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.ProductDeleteAuthorized);
+        const objectId = mocked.headers['Authorization']
+        const rangeKey = mocked.pathParameters['productSku']
+        const object = { cartId: objectId, sku: rangeKey, name: 'Example', quantity: 10, price: 15.5};
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(200).to.eql(result.statusCode);
-        });
+        const response = await mockedInjector.injectItemOnTable({ cartId: object.cartId, sku: object.sku}, object)
+        .then((result) => { return lambdaTester(handler).event(mocked)});
+
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(200) });
 
     });
 
     it('Product::Get OK response when send an Unauthenticated Delete Request with SessionId', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.ProductDeleteUnauthorizedWithSessionId);
+        const objectId = mocked.queryStringParameters['sessionId']
+        const rangeKey = mocked.pathParameters['productSku']
+        const object = { cartId: objectId, sku: rangeKey, name: 'Example', quantity: 10, price: 15.5};
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(200).to.eql(result.statusCode);
-        });
+        const response = await mockedInjector.injectItemOnTable({ cartId: object.cartId, sku: object.sku}, object)
+        .then((result) => { return lambdaTester(handler).event(mocked)});
+
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(200) });
 
     });
 
     it('Product::Get Unauthorized response when send an Unauthenticated Delete Request without SessionId', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.ProductDeleteUnauthorized);
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(401).to.eql(result.statusCode);
-        });
+        const response = await lambdaTester(handler).event(mocked)
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(401) });
 
     });
 
     // CART CONVERSION
     it('CartConversion::Get Ok response when send an Authenticated Post Request', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.CartConvertAuthorized);
+        const objectId = mocked.queryStringParameters['sessionId']
+        const object = { cartId: objectId, sku: 'NewSkuValue', name: 'Example', quantity: 10, price: 15.5};
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(200).to.eql(result.statusCode);
-        });
+        const response = await mockedInjector.injectItemOnTable({ cartId: object.cartId, sku: object.sku}, object)
+        .then((result) => { return lambdaTester(handler).event(mocked)});
+
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(200) });
 
     });
 
     it('CartConversion::Get Bad Request when send an Authenticated Post Request without SessionId', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.CartConvertAuthorizedWithoutSessionId);
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(200).to.eql(result.statusCode);
-        });
+        const response = await lambdaTester(handler).event(mocked)
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(400) });
+
+    });
+
+    it('CartConversion::Get NotFound response when send an Inexistent SessionId', async () => {
+
+        setInjector(mockedInjector);
+        const mocked = mockedEvents.getEvent(AWSEvent.CartConvertAuthorizedInexistentQueryParamOnDB);
+        const objectId = 'willnotExisitOnDb'
+        const object = { cartId: objectId, sku: 'NewSkuValue', name: 'Example', quantity: 10, price: 15.5};
+
+        const response = await mockedInjector.injectItemOnTable({ cartId: object.cartId, sku: object.sku}, object)
+        .then((result) => { return lambdaTester(handler).event(mocked)});
+        
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(404) });
 
     });
 
     it('CartConversion::Get Unauthorized response when send an Unauthenticated Post Request', async () => {
 
-        const mockedEvents = new MockedEvents();
+        setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.CartConvertUnauthorized);
 
-        return lambdaTester(handler).event(mocked).expectResult((result) => {
-            expect(401).to.eql(result.statusCode);
-        });
+        const response = await lambdaTester(handler).event(mocked)
+        return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(401) });
 
     });
 
+    after(() => {
+        mockedDynamo.stop();
+    });
 
 });

@@ -1,7 +1,7 @@
 {
-    "resource": "/cart/{productSku}",
-    "path": "/cart/9867",
-    "httpMethod": "PUT",
+    "resource": "/conversion",
+    "path": "/conversion",
+    "httpMethod": "POST",
     "headers": {
         "Accept": "*/*",
         "Accept-Encoding": "gzip, deflate",
@@ -10,7 +10,7 @@
         "Content-Type": "text/plain",
         "Host": "a12bc3456d.execute-api.sa-east-1.amazonaws.com",
         "User-Agent": "Rested/2009 CFNetwork/902.3.1 Darwin/17.7.0 (x86_64)",
-        "X-Amzn-Trace-Id": "Root=1-5c4366e4-648c42be5b994bd9d6e1f8f0",
+        "X-Amzn-Trace-Id": "Root=1-5c43572c-ed0c3faa8912f4f7042de1f5",
         "X-Forwarded-For": "177.235.72.106",
         "X-Forwarded-Port": "443",
         "X-Forwarded-Proto": "https"
@@ -38,7 +38,7 @@
             "Rested/2009 CFNetwork/902.3.1 Darwin/17.7.0 (x86_64)"
         ],
         "X-Amzn-Trace-Id": [
-            "Root=1-5c4366e4-648c42be5b994bd9d6e1f8f0"
+            "Root=1-5c43572c-ed0c3faa8912f4f7042de1f5"
         ],
         "X-Forwarded-For": [
             "177.235.72.106"
@@ -50,25 +50,29 @@
             "https"
         ]
     },
-    "queryStringParameters": null,
-    "multiValueQueryStringParameters": null,
-    "pathParameters": {
-        "productSku": "9867"
+    "queryStringParameters": {
+        "sessionId": "abcdefWilbeOnDB-MustNotExist"
     },
+    "multiValueQueryStringParameters": {
+        "sessionId": [
+            "abcdefWilbeOnDB-MustNotExist"
+        ]
+    },
+    "pathParameters": null,
     "stageVariables": null,
     "requestContext": {
-        "resourceId": "jz8gz2",
-        "resourcePath": "/cart/{productSku}",
-        "httpMethod": "PUT",
-        "extendedRequestId": "Tw0DpFDJmjQFQfA=",
-        "requestTime": "19/Jan/2019:18:05:24 +0000",
-        "path": "/test/cart/9867",
+        "resourceId": "velm5y",
+        "resourcePath": "/conversion",
+        "httpMethod": "POST",
+        "extendedRequestId": "TwqO9HqfmjQFpbA=",
+        "requestTime": "19/Jan/2019:16:58:20 +0000",
+        "path": "/test/conversion",
         "accountId": "123456789012",
         "protocol": "HTTP/1.1",
         "stage": "test",
         "domainPrefix": "a12bc3456d",
-        "requestTimeEpoch": 1547921124110,
-        "requestId": "caef1313-1c14-11e9-a5ba-335bcbff6625",
+        "requestTimeEpoch": 1547917100577,
+        "requestId": "6cb8a9d4-1c0b-11e9-86a5-8716be05b4b1",
         "identity": {
             "cognitoIdentityPoolId": null,
             "accountId": null,
@@ -85,6 +89,6 @@
         "domainName": "a12bc3456d.execute-api.sa-east-1.amazonaws.com",
         "apiId": "a12bc3456d"
     },
-    "body": "{\n  \"name\": \"Product Example\",\n  \"value\": 185.45,\n  \"sku\": \"9867\",\n  \"quantity\": 10\n}",
+    "body": null,
     "isBase64Encoded": false
 }

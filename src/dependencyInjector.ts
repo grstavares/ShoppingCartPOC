@@ -6,10 +6,10 @@ export class DependencyInjector {
 
     constructor(private readonly context: Context) { }
 
-    public getNoSQLTable(): NoSQLTable  { return null; }
+    public async getNoSQLTable(): Promise<NoSQLTable> { return Promise.reject(); }
 
-    public getMessageBus(): MessageBus { return null; }
+    public async getMessageBus(): Promise<MessageBus> { return Promise.reject(); }
 
-    public getMetricBus(): MetricBus { return null; }
+    public async getMetricBus(): Promise<MetricBus> { return Promise.reject(); }
 
 }

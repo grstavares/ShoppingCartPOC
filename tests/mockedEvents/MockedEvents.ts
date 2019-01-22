@@ -1,12 +1,13 @@
-import { Context, ClientContext, APIGatewayProxyEvent } from 'aws-lambda';
-import {CognitoIdentity } from 'aws-sdk';
- 
+/* tslint:disable all*/
+import { Context, APIGatewayProxyEvent } from 'aws-lambda';
+
 import fs = require('fs');
 
 export enum AWSEvent {
     CartConvertAuthorized = 'APIGatewayEvent_CartConvertAuthorized',
     CartConvertAuthorizedWithoutSessionId = 'APIGatewayEvent_CartConvertAuthorizedWithoutSessionId',
     CartConvertUnauthorized = 'APIGatewayEvent_CartConvertUnauthorized',
+    CartConvertAuthorizedInexistentQueryParamOnDB = 'APIGatewayEvent_CartConvertAuthorizedInexistentQueryParam',
     CartDeleteAuthorized = 'APIGatewayEvent_CartDeleteAuthorized',
     CartDeleteUnauthorized = 'APIGatewayEvent_CartDeleteUnauthorized',
     CartDeleteUnauthorizedWithSessionId = 'APIGatewayEvent_CartDeleteUnauthorizedWithSessionId',
@@ -32,19 +33,15 @@ export enum AWSEvent {
 
 export class MockedEvents {
 
-    constructor() { }
-
-    getEvent(event: AWSEvent): APIGatewayProxyEvent {
+    public getEvent(event: AWSEvent): APIGatewayProxyEvent {
 
         let filename = "./tests/mockedEvents/" + event + '.json'
         let contents = fs.readFileSync(filename,'utf8');
         return JSON.parse(contents)
-        
+
     }
 
-    getContext(): Context { return new MockedContext() }
-
-
+    public getContext(): Context { return new MockedContext() }
 
 }
 
@@ -68,4 +65,3 @@ class MockedContext {
     succeed(messageOrObject: any): void { }
 
 }
-

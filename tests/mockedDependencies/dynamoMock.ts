@@ -7,7 +7,7 @@ import { AttributeDefinitions, CreateTableInput, CreateTableOutput, KeySchema } 
 import dynamodbLocal = require('dynamodb-localhost');
 
 export interface LocalDynamoConfiguration {
-    port: number;
+    port?: number;
     tableNames: string[];
     tableKeys: KeySchema[];
     tableAttributes: AttributeDefinitions[];
@@ -17,28 +17,19 @@ export class DynamoDBMock {
 
     public instancePort = 0;
     public rawDynamo: DynamoDB;
-    public docClient: DynamoDB.DocumentClient;
+    // public docClient: DynamoDB.DocumentClient;
 
     /* tslint:disable no-unsafe-any */
-    constructor() { dynamodbLocal.install(); }
+    constructor(private readonly config: LocalDynamoConfiguration) { dynamodbLocal.install(() => { return; }); }
 
-    public async start(config: LocalDynamoConfiguration): Promise<boolean[]> {
+    public async start(): Promise<boolean[]> {
 
-        this.instancePort = config.port > 0 ? config.port : 8000;
+        this.instancePort = this.config.port > 0 ? this.config.port : 8000;
         dynamodbLocal.start({port: this.instancePort, inMemory: true, sharedDb: true});
 
-        const options = {
-            accessKeyId: 'MOCK_ACCESS_KEY_ID',
-            convertEmptyValues: true,
-            endpoint: `http://localhost:${this.instancePort}`,
-            region: 'localhost',
-            secretAccessKey: 'MOCK_SECRET_ACCESS_KEY',
-        };
+        this.rawDynamo = this.getClient();
 
-        this.rawDynamo = new DynamoDB(options);
-        this.docClient = new DynamoDB.DocumentClient(options);
-
-        const tableCount = config.tableNames.length;
+        const tableCount = this.config.tableNames.length;
 
         const promises: Array<Promise<boolean>> = [];
 
@@ -46,10 +37,10 @@ export class DynamoDBMock {
         for (i = 0; i < tableCount; i++) {
 
             const createTable: CreateTableInput = {
-                AttributeDefinitions: config.tableAttributes[i],
-                KeySchema: config.tableKeys[i],
+                AttributeDefinitions: this.config.tableAttributes[i],
+                KeySchema: this.config.tableKeys[i],
                 ProvisionedThroughput: { ReadCapacityUnits: 50, WriteCapacityUnits: 50 },
-                TableName: config.tableNames[i],
+                TableName: this.config.tableNames[i],
             };
 
             promises.push(new Promise((resolve, reject) => {
@@ -68,5 +59,36 @@ export class DynamoDBMock {
     public stop() { dynamodbLocal.stop(this.instancePort); }
 
     public remove() { dynamodbLocal.remove(); }
+
+    public async listDynamoTables(): Promise<string[]> {
+
+        return new Promise((resolve, reject) => {
+
+            const listTables: DynamoDB.ListTablesInput = {};
+            this.rawDynamo.listTables(listTables, (error: AWSError, data) => {
+
+                if (error === null && error == undefined) { resolve(data.TableNames);
+                } else { reject(error); }
+
+            });
+
+        });
+
+    }
+
+    private getClient(): DynamoDB {
+
+        const options = {
+            accessKeyId: 'MOCK_ACCESS_KEY_ID',
+            convertEmptyValues: true,
+            endpoint: `http://localhost:${this.instancePort}`,
+            region: 'localhost',
+            secretAccessKey: 'MOCK_SECRET_ACCESS_KEY',
+        };
+
+        const rawDynamo = new DynamoDB(options);
+        return rawDynamo;
+
+    }
 
 }

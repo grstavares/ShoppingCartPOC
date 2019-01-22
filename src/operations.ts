@@ -1,7 +1,7 @@
 /* tslint:disable no-implicit-dependencies */
 import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import { APIGatewayEventParser } from './aws/apigatewayeventparser';
-import { ResponseBuilder } from './common';
+import { ResponseBuilder, NoSQLTable } from './common';
 import { APIGatewayResponse } from './common/types';
 import { DependencyInjector } from './dependencyInjector';
 import { CartProduct } from './objectSchemas';
@@ -122,12 +122,11 @@ export class OperationBuilder {
             return Promise.reject(response);
         }
 
-        const dynamo = resolver.getNoSQLTable();
-
         const keys = { cartId: cartId };
         return new Promise((resolve, reject) => {
 
-            dynamo.queryItemByHashKey(keys)
+            resolver.getNoSQLTable()
+            .then((dynamo) => dynamo.queryItemByHashKey(keys))
             .then((values) => {
 
                 if (values.length > 0) {
@@ -157,12 +156,33 @@ export class OperationBuilder {
             return Promise.reject(response);
         }
 
-        const dynamo = resolver.getNoSQLTable();
-
         const keys = { cartId: cartId };
         return new Promise((resolve, reject) => {
 
-            dynamo.deleteItems(keys)
+            let dynamoTable: NoSQLTable;
+
+            resolver.getNoSQLTable()
+            .then(async (dynamo) => {
+                dynamoTable = dynamo;
+                return dynamo.queryItemByHashKey(keys);
+            })
+            .then((values) => {
+
+                if (values.length === 0) { return [true];
+                } else {
+
+                    const promises: Array<Promise<boolean>> = [];
+                    values.forEach((value, index) => {
+                        /* tslint:disable: no-string-literal */
+                        const objectKeys = {cartId: value['cartId'], sku: value['sku']};
+                        promises.push(dynamoTable.deleteItems(objectKeys));
+                    });
+
+                    return Promise.all(promises);
+
+                }
+
+            })
             .then((value) => {
 
                 const response = ResponseBuilder.ok({});
@@ -194,12 +214,14 @@ export class OperationBuilder {
             return Promise.reject(response);
         }
 
-        const dynamo = resolver.getNoSQLTable();
+        // const dynamo = resolver.getNoSQLTable();
 
         const keys = { cartId: cartId, sku: productSku };
         return new Promise((resolve, reject) => {
 
-            dynamo.getItem(keys).then((value) => {
+            resolver.getNoSQLTable()
+            .then((dynamo) => dynamo.getItem(keys))
+            .then((value) => {
 
                 if (value !== null && value !== undefined) {
 
@@ -224,7 +246,40 @@ export class OperationBuilder {
 
     }
 
-    private async performAddProduct(resolver: DependencyInjector): Promise<APIGatewayResponse> { return this.performUpdateProduct(resolver); }
+    private async performAddProduct(resolver: DependencyInjector): Promise<APIGatewayResponse> {
+
+        const skuPropertyName = 'sku';
+        const payload = this.eventParser.getPayload();
+        const cartId = this.getCartId();
+        const productSku: string = payload[skuPropertyName];
+
+        if (cartId === null) {
+            const response = ResponseBuilder.unauthorized('', this.traceId);
+            return Promise.reject(response);
+        }
+
+        if (productSku === null) {
+            const response = ResponseBuilder.badRequest('', this.traceId);
+            return Promise.reject(response);
+        }
+
+        const keys = { cartId: cartId, sku: productSku };
+        const object = this.eventParser.getPayload();
+
+        /* tslint:disable: prefer-object-spread */
+        const keyedObject = Object.assign(keys, object);
+
+        if (!this.isValidEventBody(keyedObject)) {
+            const response = ResponseBuilder.badRequest('', this.traceId);
+            return Promise.reject(response);
+        }
+
+        const path = `${this.eventParser.getResource()}/${productSku}`;
+        return this.putItemOnDatabase(resolver, keys, keyedObject)
+        .then((result) => ResponseBuilder.created(path, keyedObject))
+        .catch((reason) => ResponseBuilder.internalError(reason, this.traceId));
+
+    }
 
     private async performUpdateProduct(resolver: DependencyInjector): Promise<APIGatewayResponse> {
 
@@ -252,31 +307,21 @@ export class OperationBuilder {
             return Promise.reject(response);
         }
 
-        const dynamo = resolver.getNoSQLTable();
+        return this.putItemOnDatabase(resolver, keys, keyedObject)
+        .then((result) => ResponseBuilder.ok(keyedObject))
+        .catch((reason) => ResponseBuilder.internalError(reason, this.traceId));
+
+    }
+
+    private async putItemOnDatabase(resolver: DependencyInjector, keys: { [key: string]: any }, object: Object): Promise<boolean> {
 
         return new Promise((resolve, reject) => {
 
-            dynamo.putItem(keys, keyedObject)
-            .then((value) => {
-
-                if (value !== null && value !== undefined) {
-
-                    const response = ResponseBuilder.ok(keyedObject);
-                    resolve(response);
-
-                } else {
-
-                    const response = ResponseBuilder.notFound(JSON.stringify(keyedObject), this.traceId);
-                    reject(response);
-
-                }
-
-            }).catch((reason) => {
-
-                const response = ResponseBuilder.internalError('REDACTED', this.traceId);
-                reject(response);
-
-            });
+            resolver.getNoSQLTable()
+            .then(async (dynamo) => dynamo.putItem(keys, object))
+            .then((value) => resolve(true))
+            /* tslint:disable no-unnecessary-callback-wrapper */
+            .catch((reason) => reject(reason));
 
         });
 
@@ -297,12 +342,13 @@ export class OperationBuilder {
             return Promise.reject(response);
         }
 
-        const dynamodb = resolver.getNoSQLTable();
+        // const dynamodb = resolver.getNoSQLTable();
 
         const keys = { cartId: cartId, sku: productSku };
         return new Promise((resolve, reject) => {
 
-            dynamodb.deleteItems(keys)
+            resolver.getNoSQLTable()
+            .then((dynamo) => dynamo.deleteItems(keys))
             .then((value) => {
 
                 const response = ResponseBuilder.ok({});
@@ -321,7 +367,57 @@ export class OperationBuilder {
 
     private async performConvertCart(resolver: DependencyInjector): Promise<APIGatewayResponse> {
 
-        return Promise.reject();
+        const newCartId = this.getCartId();
+        const oldCartId = this.eventParser.getQueryParam('sessionId');
+        const userId = this.eventParser.getUserId();
+
+        if (userId !== newCartId) {
+            const response = ResponseBuilder.unauthorized('', this.traceId);
+            return Promise.reject(response);
+        }
+
+        if (newCartId === null) {
+            const response = ResponseBuilder.unauthorized('', this.traceId);
+            return Promise.reject(response);
+        }
+
+        if (oldCartId === null) {
+            const response = ResponseBuilder.badRequest('', this.traceId);
+            return Promise.reject(response);
+        }
+
+        const keys = { cartId: oldCartId };
+        return new Promise((resolve, reject) => {
+
+            let dynamoTable: NoSQLTable;
+
+            resolver.getNoSQLTable()
+            .then(async (dynamo) => {
+                dynamoTable = dynamo;
+                return dynamo.queryItemByHashKey(keys);
+            })
+            .then(async (values) => {
+
+                if (values.length === 0) {
+                    reject(ResponseBuilder.notFound('', this.traceId));
+                    return undefined;
+                }
+
+                const promises: Array<Promise<boolean>> = [];
+                values.forEach((element) => {
+                    const updated = {cartId: newCartId, ...element };
+                    const elementSku = element['sku'];
+                    promises.push(this.putItemOnDatabase(resolver, {cartId: newCartId, sku: elementSku }, updated));
+                    promises.push(dynamoTable.deleteItems({cartId: oldCartId, sku: elementSku }));
+                });
+
+                return Promise.all(promises);
+
+            })
+            .then((resultOk) => resolve(ResponseBuilder.ok({})))
+            .catch((reason) => reject(ResponseBuilder.internalError('REDACTED', this.traceId)));
+
+        });
 
     }
 
