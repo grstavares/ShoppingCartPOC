@@ -26,6 +26,7 @@ export class OperationBuilder {
 
     private readonly tableResourceId = 'NoSQLTable';
     private readonly topicResourceId = 'MessageTopic';
+    private readonly skuPropertyKey = 'sku';
     private readonly traceId: string;
     private readonly eventParser: APIGatewayEventParser;
 
@@ -153,48 +154,48 @@ export class OperationBuilder {
 
         const cartId = this.getCartId();
 
-        if (cartId === null) {
-            const response = ResponseBuilder.unauthorized('', this.traceId);
-            return Promise.reject(response);
-        }
+        if (cartId === null) {return ResponseBuilder.unauthorized('', this.traceId); }
 
         const keys = { cartId: cartId };
-        return new Promise((resolve, reject) => {
 
-            let dynamoTable: NoSQLTable;
+        return resolver.getNoSQLTable()
+        .then(async (dynamo) => {
 
-            resolver.getNoSQLTable()
-            .then(async (dynamo) => {
-                dynamoTable = dynamo;
-                return dynamo.queryItemByHashKey(keys);
-            })
-            .then((values) => {
+            const values = dynamo.queryItemByHashKey(keys);
+            const response: [NoSQLTable, Promise<Object[]>] = [dynamo, values];
+            return response;
 
-                if (values.length === 0) { return [true];
-                } else {
+        })
+        .then(async (tuple) => {
 
-                    const promises: Array<Promise<boolean>> = [];
-                    values.forEach((value, index) => {
-                        /* tslint:disable: no-string-literal */
-                        const objectKeys = {cartId: value['cartId'], sku: value['sku']};
-                        promises.push(dynamoTable.deleteItems(objectKeys));
-                    });
+            const dynamo = tuple[0];
+            const values = await tuple[1];
 
-                    return Promise.all(promises);
+            if (values.length === 0) { return ResponseBuilder.notFound('', this.traceId); }
 
-                }
-
-            })
-            .then((value) => {
-
-                const response = ResponseBuilder.ok({});
-                resolve(response);
-
-            }).catch((reason) => {
-                this.publishOperationError(OperationError.DependencyError, reason, this.tableResourceId, resolver);
-                return ResponseBuilder.internalError('REDACTED', this.traceId);
+            const promises: Array<Promise<boolean>> = [];
+            values.forEach((element) => {
+                const elementSku = element[this.skuPropertyKey];
+                promises.push(dynamo.deleteItems({cartId: cartId, sku: elementSku }));
             });
 
+            const responses = await Promise.all(promises);
+            const falses = responses.filter((element, index, array) => !element);
+            if (falses.length === 0) {
+
+                this.publishMessage({ action: AllowedOperation.RemoveAllProducts, payload: { cartId: cartId } }, resolver)
+                .catch((error) => this.publishOperationError(OperationError.DependencyError, error, this.topicResourceId, resolver));
+                return ResponseBuilder.ok({});
+
+            } else {
+                this.publishOperationError(OperationError.DependencyError, {message: 'UnableToRemoveItems'}, this.tableResourceId, resolver);
+                return ResponseBuilder.internalError('REDACTED', this.traceId);
+            }
+
+        })
+        .catch((reason) => {
+            this.publishOperationError(OperationError.DependencyError, reason, this.tableResourceId, resolver);
+            return ResponseBuilder.internalError('REDACTED', this.traceId);
         });
 
     }
@@ -274,7 +275,13 @@ export class OperationBuilder {
 
         const path = `${this.eventParser.getResource()}/${productSku}`;
         return this.putItemOnDatabase(resolver, keys, keyedObject)
-        .then((result) => ResponseBuilder.created(path, keyedObject))
+        .then((result) => {
+
+            this.publishMessage({ action: AllowedOperation.AddProduct, payload: {cartId: this.getCartId(), ...keyedObject} }, resolver)
+            .catch((error) => this.publishOperationError(OperationError.DependencyError, error, 'SnsTopic', resolver));
+            return ResponseBuilder.created(path, keyedObject);
+
+        })
         .catch((reason) => {
             this.publishOperationError(OperationError.DependencyError, reason, this.tableResourceId, resolver);
             return ResponseBuilder.internalError('REDACTED', this.traceId);
@@ -309,7 +316,13 @@ export class OperationBuilder {
         }
 
         return this.putItemOnDatabase(resolver, keys, keyedObject)
-        .then((result) => ResponseBuilder.ok(keyedObject))
+        .then((result) => {
+
+            this.publishMessage({ action: AllowedOperation.UpdateProduct, payload: {cartId: this.getCartId(), ...keyedObject} }, resolver)
+            .catch((error) => this.publishOperationError(OperationError.DependencyError, error, 'SnsTopic', resolver));
+            return ResponseBuilder.ok(keyedObject);
+
+        })
         .catch((reason) => {
             this.publishOperationError(OperationError.DependencyError, reason, this.tableResourceId, resolver);
             return ResponseBuilder.internalError('REDACTED', this.traceId);
@@ -346,23 +359,18 @@ export class OperationBuilder {
             return Promise.reject(response);
         }
 
-        // const dynamodb = resolver.getNoSQLTable();
-
         const keys = { cartId: cartId, sku: productSku };
-        return new Promise((resolve, reject) => {
+        return resolver.getNoSQLTable()
+        .then(async (dynamo) => dynamo.deleteItems(keys))
+        .then((value) => {
 
-            resolver.getNoSQLTable()
-            .then(async (dynamo) => dynamo.deleteItems(keys))
-            .then((value) => {
+            this.publishMessage({ action: AllowedOperation.RemoveProduct, payload: {sku: productSku }}, resolver)
+            .catch((error) => this.publishOperationError(OperationError.DependencyError, error, 'SnsTopic', resolver));
+            return ResponseBuilder.ok({});
 
-                const response = ResponseBuilder.ok({});
-                resolve(response);
-
-            }).catch((reason) => {
-                this.publishOperationError(OperationError.DependencyError, reason, this.tableResourceId, resolver);
-                reject(ResponseBuilder.internalError('REDACTED', this.traceId));
-            });
-
+        }).catch((reason) => {
+            this.publishOperationError(OperationError.DependencyError, reason, this.tableResourceId, resolver);
+            return ResponseBuilder.internalError('REDACTED', this.traceId);
         });
 
     }
@@ -389,39 +397,47 @@ export class OperationBuilder {
         }
 
         const keys = { cartId: oldCartId };
-        return new Promise((resolve, reject) => {
 
-            let dynamoTable: NoSQLTable;
+        return resolver.getNoSQLTable()
+        .then(async (dynamo) => {
 
-            resolver.getNoSQLTable()
-            .then(async (dynamo) => {
-                dynamoTable = dynamo;
-                return dynamo.queryItemByHashKey(keys);
-            })
-            .then(async (values) => {
+            const values = dynamo.queryItemByHashKey(keys);
+            const response: [NoSQLTable, Promise<Object[]>] = [dynamo, values];
+            return response;
 
-                if (values.length === 0) {
-                    reject(ResponseBuilder.notFound('', this.traceId));
-                    return undefined;
-                }
+        })
+        .then(async (tuple) => {
 
-                const promises: Array<Promise<boolean>> = [];
-                values.forEach((element) => {
-                    const updated = {cartId: newCartId, ...element };
-                    const elementSku = element['sku'];
-                    promises.push(this.putItemOnDatabase(resolver, {cartId: newCartId, sku: elementSku }, updated));
-                    promises.push(dynamoTable.deleteItems({cartId: oldCartId, sku: elementSku }));
-                });
+            const dynamo = tuple[0];
+            const values = await tuple[1];
 
-                return Promise.all(promises);
+            if (values.length === 0) { return ResponseBuilder.notFound('', this.traceId); }
 
-            })
-            .then((resultOk) => resolve(ResponseBuilder.ok({})))
-            .catch((reason) => {
-                this.publishOperationError(OperationError.DependencyError, reason, this.tableResourceId, resolver);
-                reject(ResponseBuilder.internalError('REDACTED', this.traceId));
+            const promises: Array<Promise<boolean>> = [];
+            values.forEach((element) => {
+                const updated = {cartId: newCartId, ...element };
+                const elementSku = element[this.skuPropertyKey];
+                promises.push(this.putItemOnDatabase(resolver, {cartId: newCartId, sku: elementSku }, updated));
+                promises.push(dynamo.deleteItems({cartId: oldCartId, sku: elementSku }));
             });
 
+            const responses = await Promise.all(promises);
+            const falses = responses.filter((element, index, array) => !element);
+            if (falses.length === 0) {
+
+                this.publishMessage({ action: AllowedOperation.ConvertCart, payload: { oldId: oldCartId, newId: newCartId } }, resolver)
+                .catch((error) => this.publishOperationError(OperationError.DependencyError, error, 'SnsTopic', resolver));
+                return ResponseBuilder.ok({});
+
+            } else {
+                this.publishOperationError(OperationError.DependencyError, {message: 'UnableToRemoveItems'}, this.tableResourceId, resolver);
+                return ResponseBuilder.internalError('REDACTED', this.traceId);
+            }
+
+        })
+        .catch((reason) => {
+            this.publishOperationError(OperationError.DependencyError, reason, this.tableResourceId, resolver);
+            return ResponseBuilder.internalError('REDACTED', this.traceId);
         });
 
     }
@@ -446,6 +462,15 @@ export class OperationBuilder {
 
         })
         .catch((error) => false);
+
+    }
+
+    private async publishMessage(message: Object, resolver: DependencyInjector): Promise<boolean> {
+
+        return resolver.getMessageBus()
+        .then(async (messageBus) => messageBus.publish(message))
+        .then((messageId) => true)
+        .catch(async (error) => Promise.reject(error));
 
     }
 

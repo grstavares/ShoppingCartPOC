@@ -13,7 +13,7 @@ export interface NoSQLTable {
 }
 
 export interface MessageBus {
-    publish(message: AwsSnsMessage): Promise<string>;
+    publish(message: Object): Promise<string>;
 }
 
 export interface MetricBus {

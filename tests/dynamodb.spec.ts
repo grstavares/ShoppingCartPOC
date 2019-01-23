@@ -65,7 +65,7 @@ describe('DynamoDB Interface', () => {
         const mockedObject = { cartId: '12345', sku: '6789', name: 'Product Example', price: 10.55, quantity: 15 };
 
         return sut.putItem(mockedKeys, mockedObject)
-        .then((result) => sut.getItem(mockedKeys))
+        .then(async (result) => sut.getItem(mockedKeys))
         .then((object) => expect(object).to.eqls(mockedObject));
 
     }).timeout(5000);
@@ -81,8 +81,8 @@ describe('DynamoDB Interface', () => {
         const mockedObject2 = { cartId: mockedCartId, sku: '0123', name: 'Product Example', price: 10.55, quantity: 15 };
 
         return sut.putItem(mockedKeys1, mockedObject1)
-        .then((result) => sut.putItem(mockedKeys2, mockedObject2))
-        .then((result) => sut.queryItemByHashKey({ cartId: mockedCartId }))
+        .then(async (result) => sut.putItem(mockedKeys2, mockedObject2))
+        .then(async (result) => sut.queryItemByHashKey({ cartId: mockedCartId }))
         .then((object) => expect(object.length).to.eqls(2));
 
     }).timeout(5000);
@@ -96,10 +96,10 @@ describe('DynamoDB Interface', () => {
         const mockedObject = { cartId: mockedCartId, sku: '6789', name: 'Product Example', price: 10.55, quantity: 15 };
 
         return sut.putItem(mockedKeys, mockedObject)
-        .then((result) => sut.queryItemByHashKey({ cartId: mockedCartId }))
+        .then(async (result) => sut.queryItemByHashKey({ cartId: mockedCartId }))
         .then((objects) => { objects.length > 0 ? Promise.resolve(true) : Promise.reject('No Data Inserted In Table'); })
-        .then((result) => sut.deleteItems(mockedKeys))
-        .then((result) => sut.queryItemByHashKey({ cartId: mockedCartId }))
+        .then(async (result) => sut.deleteItems(mockedKeys))
+        .then(async (result) => sut.queryItemByHashKey({ cartId: mockedCartId }))
         .then((objects) => expect(objects.length).to.eqls(0));
 
     }).timeout(5000);

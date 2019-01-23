@@ -11,7 +11,7 @@ export class AWSTopic implements MessageBus {
 
     constructor(private readonly arn: string) { }
 
-    public async publish(message: AwsSnsMessage): Promise<string> {
+    public async publish(message: Object): Promise<string> {
 
         return new Promise((resolve: Function, reject: Function) => {
 
