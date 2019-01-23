@@ -1,4 +1,4 @@
-# Shopping Cart Prof of Concept
+# Shopping Cart Proof of Concept
 
 POC of Shopping Cart using microservices on AWS
 
