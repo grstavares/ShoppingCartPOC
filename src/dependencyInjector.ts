@@ -4,10 +4,12 @@ import { MessageBus, MetricBus, NoSQLTable, BackendMetrics } from './common/back
 import { ErrorBuilder } from './common/utilities';
 import { ResponseBuilder, MetricBuilder } from '../../ConsultaniaPrev/ServerlessBackendAWS/services/empresa-service/src/utilities';
 import { InfrastructureMetric } from './common/types';
-import { DynamoDBTable } from './aws/dynamodb';
+import { DynamoDBTable, AWSTopic } from './aws';
+import { AWSMetricPublisher } from './aws/awsmetric';
 
 export enum DependencyInjectorError {
     DependencyNotAvailable = 'DependencyNotAvailable',
+    DependencyNotConfigured = 'DependencyNotConfigured',
 }
 
 export class DependencyInjector {
@@ -18,9 +20,10 @@ export class DependencyInjector {
 
         const tablename = process.env.DYNAMO_TABLE_NAME;
         if (tablename === null || tablename == undefined) {
-            const error = ErrorBuilder.newError(DependencyInjectorError.DependencyNotAvailable, 'noSQLTable', {});
+
+            const error = ErrorBuilder.newError(DependencyInjectorError.DependencyNotConfigured, 'noSQLTable', {});
             const response = ResponseBuilder.internalError(error.code, this.traceId);
-            const metric = new MetricBuilder(BackendMetrics.DependencyNotConfigured, 1).withResource(tablename).withResourceType('noSQLTable').build();
+            const metric = new MetricBuilder(BackendMetrics.DependencyNotConfigured, 1).withResourceType('noSQLTable').build();
 
             console.log(error);
             return this.tryToPublishMetric(metric)
@@ -33,9 +36,31 @@ export class DependencyInjector {
 
     }
 
-    public async getMessageBus(): Promise<MessageBus> { return Promise.reject(); }
+    public async getMessageBus(): Promise<MessageBus> {
 
-    public async getMetricBus(): Promise<MetricBus> { return Promise.reject(); }
+        const topicarn = process.env.SNS_TOPIC_ARN;
+        if (topicarn === null || topicarn == undefined) {
+
+            const error = ErrorBuilder.newError(DependencyInjectorError.DependencyNotConfigured, 'SNSTopic', {});
+            const response = ResponseBuilder.internalError(error.code, this.traceId);
+            const metric = new MetricBuilder(BackendMetrics.DependencyNotConfigured, 1).withResourceType('SNSTopic').build();
+
+            console.log(error);
+            return this.tryToPublishMetric(metric)
+            .then(async (result) => Promise.reject(response))
+            .catch(async (publishError) => Promise.reject(response));
+
+        }
+
+        return new AWSTopic(topicarn);
+
+    }
+
+    public async getMetricBus(): Promise<MetricBus> {
+
+        return new AWSMetricPublisher(this.context);
+
+    }
 
     private async tryToPublishMetric(metric: InfrastructureMetric): Promise<boolean> {
 
