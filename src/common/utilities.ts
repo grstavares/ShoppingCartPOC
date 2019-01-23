@@ -119,7 +119,7 @@ export class ErrorBuilder {
 
     public static newError(errorCode: string, resource: string, payload: Object): ServiceError {
 
-        const error: ServiceError = { code: errorCode, httpStatusCode: 500,  resource: resource, payload: payload };
+        const error: ServiceError = { logTag: 'ERROR::', code: errorCode, httpStatusCode: 500,  resource: resource, payload: payload };
         return error;
 
     }

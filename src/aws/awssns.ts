@@ -1,7 +1,7 @@
 /* tslint:disable:no-implicit-dependencies */
 import { AWSError, SNS } from 'aws-sdk';
-import { NoSQLTable, MessageBus } from '../common/backend';
-import { ServiceError, AwsSnsMessage } from './../common/types.d';
+import { MessageBus } from '../common/backend';
+import { AwsSnsMessage } from './../common/types.d';
 import { AWSErrorParser } from './awserrorparser';
 
 /* tslint:disable:no-var-requires */

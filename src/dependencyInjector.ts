@@ -1,8 +1,7 @@
 /* tslint:disable: no-implicit-dependencies */
 import { Context } from 'aws-lambda';
 import { MessageBus, MetricBus, NoSQLTable, BackendMetrics } from './common/backend';
-import { ErrorBuilder } from './common/utilities';
-import { ResponseBuilder, MetricBuilder } from '../../ConsultaniaPrev/ServerlessBackendAWS/services/empresa-service/src/utilities';
+import { ErrorBuilder, ResponseBuilder, MetricBuilder } from './common/utilities';
 import { InfrastructureMetric } from './common/types';
 import { DynamoDBTable, AWSTopic } from './aws';
 import { AWSMetricPublisher } from './aws/awsmetric';
@@ -14,7 +13,9 @@ export enum DependencyInjectorError {
 
 export class DependencyInjector {
 
-    constructor(private readonly context: Context, private readonly traceId: string) { }
+    private readonly traceId: string;
+
+    constructor(private readonly context: Context) { this.traceId = context.awsRequestId; }
 
     public async getNoSQLTable(): Promise<NoSQLTable> {
 

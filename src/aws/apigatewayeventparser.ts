@@ -1,5 +1,5 @@
 /* tslint:disable: no-implicit-dependencies */
-import { APIGatewayProxyEvent, Context } from 'aws-lambda';
+import { APIGatewayProxyEvent } from 'aws-lambda';
 
 export class APIGatewayEventParser {
 

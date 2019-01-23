@@ -5,6 +5,7 @@ import { ResponseBuilder, NoSQLTable } from './common';
 import { APIGatewayResponse } from './common/types';
 import { DependencyInjector } from './dependencyInjector';
 import { CartProduct } from './objectSchemas';
+import { MetricBuilder, ErrorBuilder } from './common/utilities';
 
 export enum AllowedOperation {
     GetAllProducts = 'GetAllProducts',
@@ -18,10 +19,13 @@ export enum AllowedOperation {
 
 export enum OperationError {
     ResourceNotFound = 'ResourceNotFound',
+    DependencyError = 'DependencyError',
 }
 
 export class OperationBuilder {
 
+    private readonly tableResourceId = 'NoSQLTable';
+    private readonly topicResourceId = 'MessageTopic';
     private readonly traceId: string;
     private readonly eventParser: APIGatewayEventParser;
 
@@ -137,10 +141,8 @@ export class OperationBuilder {
                 } else { reject(ResponseBuilder.notFound(JSON.stringify(keys), this.traceId)); }
 
             }).catch((reason) => {
-
-                const response = ResponseBuilder.internalError('REDACTED', this.traceId);
-                reject(response);
-
+                this.publishOperationError(OperationError.DependencyError, reason, this.tableResourceId, resolver);
+                return ResponseBuilder.internalError('REDACTED', this.traceId);
             });
 
         });
@@ -189,10 +191,8 @@ export class OperationBuilder {
                 resolve(response);
 
             }).catch((reason) => {
-
-                const response = ResponseBuilder.internalError('REDACTED', this.traceId);
-                reject(response);
-
+                this.publishOperationError(OperationError.DependencyError, reason, this.tableResourceId, resolver);
+                return ResponseBuilder.internalError('REDACTED', this.traceId);
             });
 
         });
@@ -236,10 +236,8 @@ export class OperationBuilder {
                 }
 
             }).catch((reason) => {
-
-                const response = ResponseBuilder.internalError('REDACTED', this.traceId);
-                reject(response);
-
+                this.publishOperationError(OperationError.DependencyError, reason, this.tableResourceId, resolver);
+                return ResponseBuilder.internalError('REDACTED', this.traceId);
             });
 
         });
@@ -277,7 +275,10 @@ export class OperationBuilder {
         const path = `${this.eventParser.getResource()}/${productSku}`;
         return this.putItemOnDatabase(resolver, keys, keyedObject)
         .then((result) => ResponseBuilder.created(path, keyedObject))
-        .catch((reason) => ResponseBuilder.internalError(reason, this.traceId));
+        .catch((reason) => {
+            this.publishOperationError(OperationError.DependencyError, reason, this.tableResourceId, resolver);
+            return ResponseBuilder.internalError('REDACTED', this.traceId);
+        });
 
     }
 
@@ -309,7 +310,10 @@ export class OperationBuilder {
 
         return this.putItemOnDatabase(resolver, keys, keyedObject)
         .then((result) => ResponseBuilder.ok(keyedObject))
-        .catch((reason) => ResponseBuilder.internalError(reason, this.traceId));
+        .catch((reason) => {
+            this.publishOperationError(OperationError.DependencyError, reason, this.tableResourceId, resolver);
+            return ResponseBuilder.internalError('REDACTED', this.traceId);
+        });
 
     }
 
@@ -355,10 +359,8 @@ export class OperationBuilder {
                 resolve(response);
 
             }).catch((reason) => {
-
-                const response = ResponseBuilder.internalError('REDACTED', this.traceId);
-                reject(response);
-
+                this.publishOperationError(OperationError.DependencyError, reason, this.tableResourceId, resolver);
+                reject(ResponseBuilder.internalError('REDACTED', this.traceId));
             });
 
         });
@@ -415,9 +417,35 @@ export class OperationBuilder {
 
             })
             .then((resultOk) => resolve(ResponseBuilder.ok({})))
-            .catch((reason) => reject(ResponseBuilder.internalError('REDACTED', this.traceId)));
+            .catch((reason) => {
+                this.publishOperationError(OperationError.DependencyError, reason, this.tableResourceId, resolver);
+                reject(ResponseBuilder.internalError('REDACTED', this.traceId));
+            });
 
         });
+
+    }
+
+    private publishOperationError(errorName: string, reason: Object, resource: string, resolver: DependencyInjector) {
+
+        const details = (reason === null || reason == undefined) ? {} : JSON.stringify(reason);
+        const operationError = ErrorBuilder.newError(OperationError.DependencyError, resource, details);
+        this.publishMetric(OperationError.DependencyError, 1, resource, resolver)
+        .then((result) => console.log(operationError))
+        .catch((metricPublishError) => console.log(operationError));
+
+    }
+
+    private async publishMetric(name: string, value: number, resourceName: string, resolver: DependencyInjector): Promise<boolean> {
+
+        return resolver.getMetricBus()
+        .then(async (metricbus) => {
+
+            const metric = new MetricBuilder(name, value).withResource(resourceName).build();
+            return metricbus.publish(metric);
+
+        })
+        .catch((error) => false);
 
     }
 

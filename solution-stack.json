@@ -368,15 +368,107 @@
               }
               
             }
+        },
+
+        "AppSyncExecutionRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [{
+                  "Effect": "Allow",
+                  "Principal": { "Service": ["appsync.amazonaws.com"] },
+                  "Action": ["sts:AssumeRole"]
+                }]
+              },
+              "Path": "/",
+              "Policies": [{
+                "PolicyName": "root",
+                "PolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [{
+                      "Effect": "Allow",
+                      "Resource": { "Fn::GetAtt": ["MainTable", "Arn"] },
+                      "Action": [
+                        "dynamodb:GetItem", "dynamodb:Query", "dynamodb:Scan",
+                        "dynamodb:BatchGetItem", "dynamodb:BatchWriteItem",
+                        "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem" ]
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Resource": "*",
+                      "Action": ["logs:CreateLogGroup", "logs:PutLogEvents", "logs:CreateLogStream"]
+                    }
+                  ]
+                }
+              }]
+            }
+        },
+
+        "GraphQLEndpoint": {
+            "Type" : "AWS::AppSync::GraphQLApi",
+            "Properties" : {
+              "Name" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-GraphQL"]] },
+              "AuthenticationType" : "API_KEY",
+              "LogConfig" : {
+                "CloudWatchLogsRoleArn" : { "Fn::GetAtt": ["AppSyncExecutionRole", "Arn"] },
+                "FieldLogLevel" : "NONE"
+              }
+            }
+          },
+
+        "GraphQLAPIKey": {
+            "Type" : "AWS::AppSync::ApiKey",
+            "Properties" : {
+                "Description" : "POC Key",
+                "ApiId" : { "Fn::GetAtt" : [ "GraphQLEndpoint", "ApiId" ] }
+            }
+        },
+
+        "GraphQLDataSource" : {
+            "Type" : "AWS::AppSync::DataSource",
+            "Properties" : {
+            "Type" : "AMAZON_DYNAMODB",
+            "Description" : "ShoppingCart Microservice Repository",
+            "ServiceRoleArn" : { "Fn::GetAtt": ["AppSyncExecutionRole", "Arn"] },
+            "ApiId" : { "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"] },
+            "Name" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "DataSource"]] },
+            "DynamoDBConfig" : {
+                "TableName" : { "Ref": "MainTable" },
+                "AwsRegion" : { "Ref" : "AWS::Region" },
+                "UseCallerCredentials" : false
+            }
+            }
+        },
+
+        "GraphQLSchema": {
+            "Type" : "AWS::AppSync::GraphQLSchema",
+            "Properties" : {
+            "ApiId" : { "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"] },
+            "DefinitionS3Location" : "./ShoppingCartSchema.graphql"
+            }
         }
 
     },
 
     "Outputs": {
+
         "APIUrl": {
             "Value": { "Fn::Join" : [ "", [ "https://", { "Ref" : "RestApi" }, ".execute-api.", { "Ref" : "AWS::Region" }, ".amazonaws.com/", { "Ref" : "StageName" }, "/" ] ] },
-            "Description": "The Endpoint URL of API."
-          }
+            "Description": "The Endpoint URL of REST API."
+        },
+
+        "GraphQLUrl": {
+          "Value": { "Fn::GetAtt" : [ "GraphQLEndpoint", "GraphQLUrl" ] },
+          "Description": "The Endpoint URL of GraphQL API."
+        },
+
+        "GraphQLAPIKey": {
+          "Value": { "Fn::GetAtt" : [ "GraphQLAPIKey", "ApiKey" ] },
+          "Description": "The AOIKey of GraphQL API."
+        }
+
+
     }
 
 }
