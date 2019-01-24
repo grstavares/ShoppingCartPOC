@@ -1,3 +1,5 @@
+import {} from './backend';
+
 export interface BusinessEvent {
     topicArn: string;
     body: AwsSnsMessage;
@@ -30,7 +32,7 @@ export interface ServiceParameter {
     path?: string;
 }
 
-export interface APIGatewayResponse {
+export interface ServiceResponse {
     statusCode: number;
     headers?: {
         [header: string]: boolean | number | string;

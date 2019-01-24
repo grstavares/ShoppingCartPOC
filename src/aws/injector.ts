@@ -1,17 +1,16 @@
 /* tslint:disable: no-implicit-dependencies */
 import { Context } from 'aws-lambda';
-import { MessageBus, MetricBus, NoSQLTable, BackendMetrics } from './common/backend';
-import { ErrorBuilder, ResponseBuilder, MetricBuilder } from './common/utilities';
-import { InfrastructureMetric } from './common/types';
-import { DynamoDBTable, AWSTopic } from './aws';
-import { AWSMetricPublisher } from './aws/awsmetric';
+import { MessageBus, MetricBus, NoSQLTable, BackendMetrics, InputParser } from '../common/backend';
+import { ErrorBuilder, ResponseBuilder, MetricBuilder } from '../common/utilities';
+import { InfrastructureMetric } from '../common/types';
+import { DynamoDBTable, AWSTopic, AWSMetricPublisher, AWSParser } from '.';
 
 export enum DependencyInjectorError {
     DependencyNotAvailable = 'DependencyNotAvailable',
     DependencyNotConfigured = 'DependencyNotConfigured',
 }
 
-export class DependencyInjector {
+export class AWSDependencyInjector {
 
     private readonly traceId: string;
 
@@ -60,6 +59,13 @@ export class DependencyInjector {
     public async getMetricBus(): Promise<MetricBus> {
 
         return new AWSMetricPublisher(this.context);
+
+    }
+
+    public getInputParser(event: any): InputParser {
+
+        /* tslint:disable no-unsafe-any*/
+        return AWSParser.parseAPIGatewayEvent(event);
 
     }
 

@@ -1,4 +1,4 @@
-import { AwsSnsMessage, InfrastructureMetric } from './types';
+import { InfrastructureMetric } from './types';
 
 export enum BackendMetrics {
     DependencyNotConfigured = 'DependencyNotConfigured',
@@ -22,4 +22,20 @@ export interface MetricBus {
 
 export interface Logger {
     log(message: string): void;
+}
+
+export interface InputParser {
+    getHttpMethod(): string;
+    getUserId(): string;
+    getPathParam(name: string): string;
+    getQueryParam(name: string): string;
+    getResource(): string;
+    getPayload(): Object;
+}
+
+export interface DependencyInjector {
+    getNoSQLTable(): Promise<NoSQLTable>;
+    getMessageBus(): Promise<MessageBus>;
+    getMetricBus(): Promise<MetricBus>;
+    getInputParser(event: any): InputParser;
 }

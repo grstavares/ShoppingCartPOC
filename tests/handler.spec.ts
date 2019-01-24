@@ -7,7 +7,6 @@ import lambdaTester = require('lambda-tester');
 import { MockedEvents, AWSEvent } from './mockedEvents/MockedEvents';
 import { KeySchema, AttributeDefinitions } from 'aws-sdk/clients/dynamodb';
 import { DynamoDBMock, LocalDynamoConfiguration } from './mockedDependencies/dynamoMock';
-import { DependencyInjector } from '../src/dependencyInjector';
 import { DependencyInjectorMock } from './mockedDependencies/injectorMock';
 
 let mockedEvents:MockedEvents;
@@ -34,7 +33,7 @@ describe('Lambda Handler', () => {
         const context = mockedEvents.getContext();
         mockedDynamo = new DynamoDBMock(dynamoconfig);
         mockedDynamo.start()
-        .then((result) => { 
+        .then((result) => {
             mockedInjector = new DependencyInjectorMock(context, mockedDynamo.rawDynamo, tableNames[0]);
             done();
         })
@@ -69,7 +68,7 @@ describe('Lambda Handler', () => {
         .then((result) => { return lambdaTester(handler).event(mocked)});
 
         return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(200) });
-        
+
     });
 
     it('Cart::Get Unauthorized response when send an Unauthenticated Get Request without SessionId', async () => {
@@ -264,7 +263,7 @@ describe('Lambda Handler', () => {
 
     // PRODUCT DELETE
     it('Product::Get Ok response when send an Authenticated Delete Request', async () => {
-        
+
         setInjector(mockedInjector);
         const mocked = mockedEvents.getEvent(AWSEvent.ProductDeleteAuthorized);
         const objectId = mocked.headers['Authorization']
@@ -337,7 +336,7 @@ describe('Lambda Handler', () => {
 
         const response = await mockedInjector.injectItemOnTable({ cartId: object.cartId, sku: object.sku}, object)
         .then((result) => { return lambdaTester(handler).event(mocked)});
-        
+
         return response.expectResult((verifier) => { expect(verifier.statusCode).to.eql(404) });
 
     });

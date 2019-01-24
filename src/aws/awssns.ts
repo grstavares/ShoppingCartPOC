@@ -2,7 +2,7 @@
 import { AWSError, SNS } from 'aws-sdk';
 import { MessageBus } from '../common/backend';
 import { AwsSnsMessage } from './../common/types.d';
-import { AWSErrorParser } from './awserrorparser';
+import { AWSParser } from './parser';
 
 /* tslint:disable:no-var-requires */
 const AWSXRay = require('aws-xray-sdk');
@@ -21,7 +21,7 @@ export class AWSTopic implements MessageBus {
 
             sns.publish(snsEvent, (error: AWS.AWSError, data: AWS.SNS.PublishResponse) => {
 
-                if (error !== null && error !== undefined) { reject(AWSErrorParser.parseAWSError(error, {type: 'topic', name: this.arn}));
+                if (error !== null && error !== undefined) { reject(AWSParser.parseAWSError(error, {type: 'topic', name: this.arn}));
                 } else { resolve(data.MessageId); }
 
             });

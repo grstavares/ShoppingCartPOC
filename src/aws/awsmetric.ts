@@ -2,7 +2,7 @@
 import { CloudWatch, AWSError } from 'aws-sdk';
 import { MetricBus } from '../common';
 import { InfrastructureMetric } from '../common/types';
-import { AWSErrorParser } from './awserrorparser';
+import { AWSParser } from './parser';
 import { Context } from 'aws-lambda';
 
 /* tslint:disable:no-var-requires */
@@ -36,7 +36,7 @@ export class AWSMetricPublisher implements MetricBus {
 
             this.cloudwatch.putMetricData(metricData, (error: AWSError, data) => {
 
-                if (error !== null && error !== undefined) {reject(AWSErrorParser.parseAWSError(error, {type: 'metric', name: metric.name}));
+                if (error !== null && error !== undefined) {reject(AWSParser.parseAWSError(error, {type: 'metric', name: metric.name}));
                 } else {resolve(true); }
 
             });

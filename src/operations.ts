@@ -1,9 +1,6 @@
 /* tslint:disable no-implicit-dependencies */
-import { APIGatewayProxyEvent, Context } from 'aws-lambda';
-import { APIGatewayEventParser } from './aws/apigatewayeventparser';
-import { ResponseBuilder, NoSQLTable } from './common';
-import { APIGatewayResponse } from './common/types';
-import { DependencyInjector } from './dependencyInjector';
+import { DependencyInjector, ResponseBuilder, NoSQLTable, InputParser } from './common';
+import { ServiceResponse } from './common/types';
 import { CartProduct } from './objectSchemas';
 import { MetricBuilder, ErrorBuilder } from './common/utilities';
 
@@ -27,20 +24,13 @@ export class OperationBuilder {
     private readonly tableResourceId = 'NoSQLTable';
     private readonly topicResourceId = 'MessageTopic';
     private readonly skuPropertyKey = 'sku';
-    private readonly traceId: string;
-    private readonly eventParser: APIGatewayEventParser;
 
-    constructor(private readonly event: APIGatewayProxyEvent, private readonly context: Context) {
-
-        this.traceId = context.awsRequestId;
-        this.eventParser = new APIGatewayEventParser(event);
-
-    }
+    constructor(private readonly eventParser: InputParser, private readonly traceId: string) { }
 
     public getOperation(): AllowedOperation {
 
-        const resource = this.event.resource;
-        const method = this.event.httpMethod;
+        const resource = this.eventParser.getResource();
+        const method = this.eventParser.getHttpMethod();
 
         if (resource.toLowerCase() === '/cart') {
 
@@ -97,7 +87,7 @@ export class OperationBuilder {
 
     }
 
-    public async executeOperation(resolver: DependencyInjector): Promise<APIGatewayResponse> {
+    public async executeOperation(resolver: DependencyInjector): Promise<ServiceResponse> {
 
         const operation = this.getOperation();
         switch (operation) {
@@ -118,7 +108,7 @@ export class OperationBuilder {
 
     }
 
-    private async performGetAllProducts(resolver: DependencyInjector): Promise<APIGatewayResponse> {
+    private async performGetAllProducts(resolver: DependencyInjector): Promise<ServiceResponse> {
 
         const cartId = this.getCartId();
 
@@ -150,7 +140,7 @@ export class OperationBuilder {
 
     }
 
-    private async performRemoveAllProducts(resolver: DependencyInjector): Promise<APIGatewayResponse> {
+    private async performRemoveAllProducts(resolver: DependencyInjector): Promise<ServiceResponse> {
 
         const cartId = this.getCartId();
 
@@ -200,7 +190,7 @@ export class OperationBuilder {
 
     }
 
-    private async performGetProduct(resolver: DependencyInjector): Promise<APIGatewayResponse> {
+    private async performGetProduct(resolver: DependencyInjector): Promise<ServiceResponse> {
 
         const cartId = this.getCartId();
         const productSku = this.eventParser.getPathParam('productSku');
@@ -214,8 +204,6 @@ export class OperationBuilder {
             const response = ResponseBuilder.badRequest('', this.traceId);
             return Promise.reject(response);
         }
-
-        // const dynamo = resolver.getNoSQLTable();
 
         const keys = { cartId: cartId, sku: productSku };
         return new Promise((resolve, reject) => {
@@ -245,7 +233,7 @@ export class OperationBuilder {
 
     }
 
-    private async performAddProduct(resolver: DependencyInjector): Promise<APIGatewayResponse> {
+    private async performAddProduct(resolver: DependencyInjector): Promise<ServiceResponse> {
 
         const skuPropertyName = 'sku';
         const payload = this.eventParser.getPayload();
@@ -289,7 +277,7 @@ export class OperationBuilder {
 
     }
 
-    private async performUpdateProduct(resolver: DependencyInjector): Promise<APIGatewayResponse> {
+    private async performUpdateProduct(resolver: DependencyInjector): Promise<ServiceResponse> {
 
         const cartId = this.getCartId();
         const productSku = this.eventParser.getPathParam('productSku');
@@ -344,7 +332,7 @@ export class OperationBuilder {
 
     }
 
-    private async performRemoveProduct(resolver: DependencyInjector): Promise<APIGatewayResponse> {
+    private async performRemoveProduct(resolver: DependencyInjector): Promise<ServiceResponse> {
 
         const cartId = this.getCartId();
         const productSku = this.eventParser.getPathParam('productSku');
@@ -375,7 +363,7 @@ export class OperationBuilder {
 
     }
 
-    private async performConvertCart(resolver: DependencyInjector): Promise<APIGatewayResponse> {
+    private async performConvertCart(resolver: DependencyInjector): Promise<ServiceResponse> {
 
         const newCartId = this.getCartId();
         const oldCartId = this.eventParser.getQueryParam('sessionId');

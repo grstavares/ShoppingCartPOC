@@ -2,7 +2,7 @@
 import { AWSError, DynamoDB } from 'aws-sdk';
 import { NoSQLTable } from '../common/backend';
 import { ServiceError } from './../common/types.d';
-import { AWSErrorParser } from './awserrorparser';
+import { AWSParser } from './parser';
 
 /* tslint:disable:no-var-requires */
 const AWSXRay = require('aws-xray-sdk');
@@ -109,27 +109,7 @@ export class DynamoDBTable implements NoSQLTable {
 
     private parseAWSError(error: AWSError, resource: { type: string; name: string }): ServiceError {
 
-        return AWSErrorParser.parseAWSError(error, resource);
-
-        // let errorCode  = 'undefined';
-        // let httpCode = 500;
-        // const resourceDescription = JSON.stringify(resource);
-
-        // switch (error.code.toLowerCase()) {
-        //     case 'networkingerror':
-        //         errorCode = 'NetworkError';
-        //         httpCode = 500;
-        //         break;
-        //     case 'missingrequiredparameter':
-        //         errorCode = 'InvalidObjectBody';
-        //         httpCode = 400;
-        //         break;
-        //     default:
-        //         console.log('AWSError not identified!');
-        //         console.log(error);
-        // }
-
-        // return {logTag: 'ERROR::', code: errorCode, httpStatusCode: httpCode, resource: resourceDescription, payload: error};
+        return AWSParser.parseAWSError(error, resource);
 
     }
 

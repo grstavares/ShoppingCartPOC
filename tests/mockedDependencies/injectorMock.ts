@@ -1,16 +1,16 @@
 /* tslint:disable: no-implicit-dependencies */
 import { Context } from 'aws-lambda';
-import { DependencyInjector } from '../../src/dependencyInjector';
-import { MessageBus, MetricBus, NoSQLTable } from '../../src/common/backend';
+import { DependencyInjector, MessageBus, MetricBus, NoSQLTable, InputParser } from '../../src/common/backend';
 
 /* tslint:disable no-submodule-imports */
 import { DynamoDBTable } from '../../src/aws/dynamodb';
 import { DynamoDB } from 'aws-sdk';
 import { InfrastructureMetric } from '../../src/common/types';
+import { AWSParser } from '../../src/aws';
 
-export class DependencyInjectorMock extends DependencyInjector {
+export class DependencyInjectorMock implements DependencyInjector {
 
-    constructor(context: Context, private readonly dynamoDB: DynamoDB, private readonly tableName: string) { super(context); }
+    constructor(context: Context, private readonly dynamoDB: DynamoDB, private readonly tableName: string) { }
 
     public async getNoSQLTable(): Promise<NoSQLTable> {
 
@@ -26,6 +26,13 @@ export class DependencyInjectorMock extends DependencyInjector {
 
         return this.getNoSQLTable()
         .then(async (table) => table.putItem(keys, object));
+
+    }
+
+    public getInputParser(event: any): InputParser {
+
+        /* tslint:disable no-unsafe-any*/
+        return AWSParser.parseAPIGatewayEvent(event);
 
     }
 

@@ -1,3 +1,4 @@
+import { AWSParser } from './../src/aws/parser';
 /* tslint:disable all */
 import { MockedEvents, AWSEvent } from './mockedEvents/MockedEvents';
 import { expect, should } from 'chai';
@@ -10,10 +11,11 @@ describe('OperationBuilder', () => {
 
         let mockedEvents = new MockedEvents();
         let mocked = mockedEvents.getEvent(AWSEvent.CartGetAuthorized);
-        let context = mockedEvents.getContext()
+        let parser = AWSParser.parseAPIGatewayEvent(mocked);
+        let context = 'ThisIsTheTraceId'
         let authHeader = mocked.headers['Authorization']
 
-        let sut = new OperationBuilder(mocked, context)
+        let sut = new OperationBuilder(parser, context)
         expect(sut.getCartId()).to.equal(authHeader);
 
     });
@@ -22,10 +24,11 @@ describe('OperationBuilder', () => {
 
         let mockedEvents = new MockedEvents();
         let mocked = mockedEvents.getEvent(AWSEvent.CartGetUnauthorizedWithSessionId);
-        let context = mockedEvents.getContext()
+        let parser = AWSParser.parseAPIGatewayEvent(mocked);
+        let context = 'ThisIsTheTraceId'
         let queryParam = mocked.queryStringParameters['sessionId']
 
-        let sut = new OperationBuilder(mocked, context)
+        let sut = new OperationBuilder(parser, context)
         expect(sut.getCartId()).to.equal(queryParam);
 
     });
@@ -34,9 +37,10 @@ describe('OperationBuilder', () => {
 
         let mockedEvents = new MockedEvents();
         let mocked = mockedEvents.getEvent(AWSEvent.CartGetUnauthorized);
-        let context = mockedEvents.getContext()
+        let parser = AWSParser.parseAPIGatewayEvent(mocked);
+        let context = 'ThisIsTheTraceId'
 
-        let sut = new OperationBuilder(mocked, context)
+        let sut = new OperationBuilder(parser, context)
         expect(sut.getCartId()).to.null;
 
     });
@@ -45,9 +49,10 @@ describe('OperationBuilder', () => {
 
         let mockedEvents = new MockedEvents();
         let mocked = mockedEvents.getEvent(AWSEvent.ProductPutAuthorized);
-        let context = mockedEvents.getContext()
+        let parser = AWSParser.parseAPIGatewayEvent(mocked);
+        let context = 'ThisIsTheTraceId'
 
-        let sut = new OperationBuilder(mocked, context)
+        let sut = new OperationBuilder(parser, context)
         let body = JSON.parse(mocked.body)
         expect(sut.isValidEventBody(body)).to.true;
 
@@ -57,9 +62,10 @@ describe('OperationBuilder', () => {
 
         let mockedEvents = new MockedEvents();
         let mocked = mockedEvents.getEvent(AWSEvent.ProductPutAuthorizedwithInvalidBody);
-        let context = mockedEvents.getContext()
+        let parser = AWSParser.parseAPIGatewayEvent(mocked);
+        let context = 'ThisIsTheTraceId'
 
-        let sut = new OperationBuilder(mocked, context)
+        let sut = new OperationBuilder(parser, context)
         let body = JSON.parse(mocked.body)
         expect(sut.isValidEventBody(body)).to.false;
 
@@ -69,9 +75,10 @@ describe('OperationBuilder', () => {
 
         let mockedEvents = new MockedEvents();
         let mocked = mockedEvents.getEvent(AWSEvent.CartGetAuthorized);
-        let context = mockedEvents.getContext()
+        let parser = AWSParser.parseAPIGatewayEvent(mocked);
+        let context = 'ThisIsTheTraceId'
 
-        let sut = new OperationBuilder(mocked, context)
+        let sut = new OperationBuilder(parser, context)
         expect(sut.getOperation()).to.equals(AllowedOperation.GetAllProducts);
 
     });
@@ -80,9 +87,10 @@ describe('OperationBuilder', () => {
 
         let mockedEvents = new MockedEvents();
         let mocked = mockedEvents.getEvent(AWSEvent.CartDeleteAuthorized);
-        let context = mockedEvents.getContext()
+        let parser = AWSParser.parseAPIGatewayEvent(mocked);
+        let context = 'ThisIsTheTraceId'
 
-        let sut = new OperationBuilder(mocked, context)
+        let sut = new OperationBuilder(parser, context)
         expect(sut.getOperation()).to.equals(AllowedOperation.RemoveAllProducts);
 
     });
@@ -91,9 +99,10 @@ describe('OperationBuilder', () => {
 
         let mockedEvents = new MockedEvents();
         let mocked = mockedEvents.getEvent(AWSEvent.ProductGetAuthorized);
-        let context = mockedEvents.getContext()
+        let parser = AWSParser.parseAPIGatewayEvent(mocked);
+        let context = 'ThisIsTheTraceId'
 
-        let sut = new OperationBuilder(mocked, context)
+        let sut = new OperationBuilder(parser, context)
         expect(sut.getOperation()).to.equals(AllowedOperation.GetProduct);
 
     });
@@ -102,9 +111,10 @@ describe('OperationBuilder', () => {
 
         let mockedEvents = new MockedEvents();
         let mocked = mockedEvents.getEvent(AWSEvent.ProductPostAuthorized);
-        let context = mockedEvents.getContext()
+        let parser = AWSParser.parseAPIGatewayEvent(mocked);
+        let context = 'ThisIsTheTraceId'
 
-        let sut = new OperationBuilder(mocked, context)
+        let sut = new OperationBuilder(parser, context)
         expect(sut.getOperation()).to.equals(AllowedOperation.AddProduct);
 
     });
@@ -113,9 +123,10 @@ describe('OperationBuilder', () => {
 
         let mockedEvents = new MockedEvents();
         let mocked = mockedEvents.getEvent(AWSEvent.ProductPutAuthorized);
-        let context = mockedEvents.getContext()
+        let parser = AWSParser.parseAPIGatewayEvent(mocked);
+        let context = 'ThisIsTheTraceId'
 
-        let sut = new OperationBuilder(mocked, context)
+        let sut = new OperationBuilder(parser, context)
         expect(sut.getOperation()).to.equals(AllowedOperation.UpdateProduct);
 
     });
@@ -124,9 +135,10 @@ describe('OperationBuilder', () => {
 
         let mockedEvents = new MockedEvents();
         let mocked = mockedEvents.getEvent(AWSEvent.ProductDeleteAuthorized);
-        let context = mockedEvents.getContext()
+        let parser = AWSParser.parseAPIGatewayEvent(mocked);
+        let context = 'ThisIsTheTraceId'
 
-        let sut = new OperationBuilder(mocked, context)
+        let sut = new OperationBuilder(parser, context)
         expect(sut.getOperation()).to.equals(AllowedOperation.RemoveProduct);
 
     });
@@ -135,9 +147,10 @@ describe('OperationBuilder', () => {
 
         let mockedEvents = new MockedEvents();
         let mocked = mockedEvents.getEvent(AWSEvent.CartConvertAuthorized);
-        let context = mockedEvents.getContext()
+        let parser = AWSParser.parseAPIGatewayEvent(mocked);
+        let context = 'ThisIsTheTraceId'
 
-        let sut = new OperationBuilder(mocked, context)
+        let sut = new OperationBuilder(parser, context)
         expect(sut.getOperation()).to.equals(AllowedOperation.ConvertCart);
 
     });

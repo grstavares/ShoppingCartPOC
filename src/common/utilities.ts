@@ -1,4 +1,4 @@
-import { APIGatewayResponse, InfrastructureMetric, InfrastructureMetricDimension, ServiceError } from './types';
+import { ServiceResponse, InfrastructureMetric, InfrastructureMetricDimension, ServiceError } from './types';
 
 export const HttpStatusCode = {
     badRequest: 400,
@@ -15,42 +15,42 @@ export class ResponseBuilder {
 
     private static readonly defaultHeaders = {'Content-Type': 'application/json'};
 
-    public static ok<T>(result: T): APIGatewayResponse { return ResponseBuilder.parseResponse(result, HttpStatusCode.ok); }
+    public static ok<T>(result: T): ServiceResponse { return ResponseBuilder.parseResponse(result, HttpStatusCode.ok); }
 
-    public static created<T>(url: string, result: T): APIGatewayResponse {
+    public static created<T>(url: string, result: T): ServiceResponse {
         const headers = { Location: url };
         return ResponseBuilder.parseResponse(result, HttpStatusCode.created, headers);
     }
 
-    public static badRequest(reason: string, traceId: string): APIGatewayResponse {
+    public static badRequest(reason: string, traceId: string): ServiceResponse {
 
         const error = ResponseBuilder.parseError(HttpStatusCode.badRequest, reason, traceId);
         return ResponseBuilder.parseResponse(error, HttpStatusCode.badRequest);
 
     }
 
-    public static unauthorized(reason: string, traceId: string): APIGatewayResponse {
+    public static unauthorized(reason: string, traceId: string): ServiceResponse {
 
         const error = ResponseBuilder.parseError(HttpStatusCode.unauthorized, 'REDACTED', traceId);
         return ResponseBuilder.parseResponse(error, HttpStatusCode.unauthorized);
 
     }
 
-    public static forbidden(reason: string, traceId: string): APIGatewayResponse {
+    public static forbidden(reason: string, traceId: string): ServiceResponse {
 
         const error = ResponseBuilder.parseError(HttpStatusCode.forbidden, 'REDACTED', traceId);
         return ResponseBuilder.parseResponse(error, HttpStatusCode.forbidden);
 
     }
 
-    public static notFound(reason: string, traceId: string): APIGatewayResponse {
+    public static notFound(reason: string, traceId: string): ServiceResponse {
 
         const error = ResponseBuilder.parseError(HttpStatusCode.notFound, reason, traceId);
         return ResponseBuilder.parseResponse(error, HttpStatusCode.notFound);
 
     }
 
-    public static internalError(reason: string, traceId: string): APIGatewayResponse {
+    public static internalError(reason: string, traceId: string): ServiceResponse {
 
         const error = ResponseBuilder.parseError(HttpStatusCode.internalServerError, 'REDACTED', traceId);
         return ResponseBuilder.parseResponse(error, HttpStatusCode.internalServerError);
@@ -64,14 +64,14 @@ export class ResponseBuilder {
 
     }
 
-    private static parseResponse<T>(result: T, statusCode: number, headers?: {[key: string]: string}): APIGatewayResponse {
+    private static parseResponse<T>(result: T, statusCode: number, headers?: {[key: string]: string}): ServiceResponse {
 
         const responseBody = (result !== null && result !== undefined) ? JSON.stringify(result) : null;
 
         /* tslint:disable: prefer-object-spread */
         const parsedHeaders = (headers !== null && headers != undefined) ? Object.assign(headers, ResponseBuilder.defaultHeaders) : ResponseBuilder.defaultHeaders;
 
-        const response: APIGatewayResponse = {
+        const response: ServiceResponse = {
             body: responseBody,
             headers: parsedHeaders,
             statusCode: statusCode,

@@ -9,7 +9,6 @@ import { DynamoDBTable } from '../src/aws/dynamodb';
 
 /* tslint:disable no-import-side-effect */
 import 'mocha';
-import { mockEvent } from '../../ConsultaniaPrev/ServerlessBackendAWS/services/empresa-service/tests/mocks/mock-events';
 
 const tableNames = ['ShopingCart'];
 const tableKeys: KeySchema[] = [ [{ AttributeName: 'cartId', KeyType: 'HASH'}, { AttributeName: 'sku', KeyType: 'RANGE'}] ];
