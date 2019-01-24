@@ -68,8 +68,8 @@ The service was designed with the folowing business assumptions in mind:
 First of all, you must create all Solutions Components in AWS. For this, you'll need an AWS Account and the AWS CLI installed on your environment. With the previous conditions enabled, please follow this instructions:
 
 1. Clone this repo in you local machine;
-2. Run npm install to instal all the components;
-3. After npm install, run npm run build. This command will run the unit tests and compile Typescript code;
+2. Run `npm install` to instal all the components;
+3. After npm install, run `npm run build`. This command will run the unit tests and compile Typescript code;
 4. With the code compiled, please run the following command: `aws cloudformation package --template-file solution-stack.json --s3-bucket <BUCKET NAME FOR CODE UPLOAD> --output-template-file packaged.yml`;
 5. After the command above, please run the following command: `aws cloudformation deploy --template-file <ABSOLUTE PROJECT FOLDER LOCATION>/packaged.yml --stack-name <YOUR STACK NAME>`;
 6. After stack Creation, please run the following command: `aws cloudformation describe-stacks --stack-name <YOUR STACK NAME>`;
@@ -104,7 +104,7 @@ For the GraphQL, you can send, **at this moment**, the folowing queries:
 }
 ```
 
-- getProduct:
+- GetProduct:
 
 ```graphql
 {
@@ -117,4 +117,5 @@ For the GraphQL, you can send, **at this moment**, the folowing queries:
 
 1. Implement GraphQL mutations;
 2. Implement GraphQL subscriptions;
-3. Implement Authentication Provider using AWS Cognito.
+3. Integrate REST API changes to GraphQL subscriptions;
+4. Implement Authentication Provider using AWS Cognito.
