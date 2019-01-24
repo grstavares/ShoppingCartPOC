@@ -74,9 +74,9 @@ First of all, you must create all Solutions Components in AWS. For this, you'll 
 5. After the command above, please run the following command: `aws cloudformation deploy --template-file <ABSOLUTE PROJECT FOLDER LOCATION>/packaged.yml --stack-name <YOUR STACK NAME>`;
 6. After stack Creation, please run the following command: `aws cloudformation describe-stacks --stack-name <YOUR STACK NAME>`;
 7. In the command Output, please look for Outputs session. You will find three critical values::
-  1. *APIUrl*: The REST HTTPS endpoint for API testing;
-  2. *GraphQLUrl*: The GraphQL endpoint for API testing;
-  3. *GraphQLAPIKey*: The GraphQL endpoint API Key to authorize queries inside GraphQL api.
+    1. *APIUrl*: The REST HTTPS endpoint for API testing;
+    2. *GraphQLUrl*: The GraphQL endpoint for API testing;
+    3. *GraphQLAPIKey*: The GraphQL endpoint API Key to authorize queries inside GraphQL api.
 8. With this information, you can proceed to integrate your clients to the API.
 
 #### Client Integration Requirements
@@ -84,24 +84,29 @@ First of all, you must create all Solutions Components in AWS. For this, you'll 
 ##### REST API Requests
 
 For the REST API, you can send requests for the folowing endpoints:
-1. `{APIUrl}`/cart: GET All Products from Cart, POST a product to Cart, DELETE all products form Cart.
-2. `{APIUrl}`/cart/{sku}: GET Product from Cart with the informed SKU, PUT product data to Cart, updating the old values, DELETE product form Cart.
-3. `{APIUrl}`/conversion/{sku}: Convert and Unauthenticad Cart to and Authenticated One (POST Method).
+
+1. `{APIUrl}/cart`: **GET** All Products from Cart, **POST** a product to Cart, **DELETE** all products form Cart.
+2. `{APIUrl}/cart/{sku}`: **GET** Product from Cart with the informed SKU, **PUT** product data to Cart, updating the old values, **DELETE** product form Cart.
+3. `{APIUrl}/conversion`: Convert and Unauthenticad Cart to and Authenticated One (**POST**).
 
 For all the requests, you must provide and `Authorization` header OR a `sessionId` query parameter. The authorization header, **at this moment**, will be considered the plain UserId. The `conversion` operation permits move the cart from unauthorized to authorized status. For this reason, in the request you must provide the `Authorization` header AND the `sessionId` query parameter.
 
 ##### GraphQL API Requests
 
 For the GraphQL, you can send, **at this moment**, the folowing queries:
-1. GetCart;
-```
+
+- GetCart;
+
+```graphql
 {
   "query": "query GetCart {cart(cartId: \"{cartId}\") { sku name price quantity } }",
   "operationName": "GetCart"
 }
 ```
-2. getProduct:
-```
+
+- getProduct:
+
+```graphql
 {
   "query": "query GetProduct {product(cartId: \"{cartId}\", sku: \"{sku}\") { sku name price quantity } }",
   "operationName": "GetProduct"
@@ -109,6 +114,7 @@ For the GraphQL, you can send, **at this moment**, the folowing queries:
 ```
 
 ### TODO
+
 1. Implement GraphQL mutations;
 2. Implement GraphQL subscriptions;
 3. Implement Authentication Provider using AWS Cognito.
