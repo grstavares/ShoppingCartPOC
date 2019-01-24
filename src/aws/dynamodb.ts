@@ -1,7 +1,6 @@
 /* tslint:disable:no-implicit-dependencies */
-import { AWSError, DynamoDB } from 'aws-sdk';
+import { DynamoDB } from 'aws-sdk';
 import { NoSQLTable } from '../common/backend';
-import { ServiceError } from './../common/types.d';
 import { AWSParser } from './parser';
 
 /* tslint:disable:no-var-requires */
@@ -27,7 +26,7 @@ export class DynamoDBTable implements NoSQLTable {
 
             this.dynamoDB.getItem(getItemParams).promise()
             .then((result) => resolve((result.Item !== null && result.Item !== undefined) ? this.unmarshalObject(result.Item) : null))
-            .catch((error) => reject(this.parseAWSError(error, {type: 'table', name: this.tableName})));
+            .catch((error) => reject(AWSParser.parseAWSError(error, {type: 'table', name: this.tableName})));
 
         });
 
@@ -57,7 +56,7 @@ export class DynamoDBTable implements NoSQLTable {
                 const objectItems = dynamoItems.map((item, index, array) => this.unmarshalObject(item));
                 resolve(objectItems);
 
-            }).catch((error) => reject(this.parseAWSError(error, {type: 'table', name: this.tableName})));
+            }).catch((error) => reject(AWSParser.parseAWSError(error, {type: 'table', name: this.tableName})));
 
         });
 
@@ -72,7 +71,7 @@ export class DynamoDBTable implements NoSQLTable {
 
             this.dynamoDB.putItem(putObject).promise()
             .then((result) => resolve(true))
-            .catch((error) => reject(this.parseAWSError(error, {type: 'table', name: this.tableName})));
+            .catch((error) => reject(AWSParser.parseAWSError(error, {type: 'table', name: this.tableName})));
 
         });
 
@@ -87,7 +86,7 @@ export class DynamoDBTable implements NoSQLTable {
 
             this.dynamoDB.deleteItem(deleteItemParams).promise()
             .then((result) => resolve(true))
-            .catch((error) => reject(this.parseAWSError(error, {type: 'table', name: this.tableName})));
+            .catch((error) => reject(AWSParser.parseAWSError(error, {type: 'table', name: this.tableName})));
 
         });
 
@@ -104,12 +103,6 @@ export class DynamoDBTable implements NoSQLTable {
 
         const unmarshsalled = DynamoDB.Converter.unmarshall(object, { convertEmptyValues: true, wrapNumbers: false });
         return unmarshsalled;
-
-    }
-
-    private parseAWSError(error: AWSError, resource: { type: string; name: string }): ServiceError {
-
-        return AWSParser.parseAWSError(error, resource);
 
     }
 

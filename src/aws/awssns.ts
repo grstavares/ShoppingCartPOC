@@ -1,7 +1,6 @@
 /* tslint:disable:no-implicit-dependencies */
-import { AWSError, SNS } from 'aws-sdk';
+import { SNS } from 'aws-sdk';
 import { MessageBus } from '../common/backend';
-import { AwsSnsMessage } from './../common/types.d';
 import { AWSParser } from './parser';
 
 /* tslint:disable:no-var-requires */
