@@ -178,7 +178,7 @@
                 "Type" : "MOCK",
                 "IntegrationResponses" : [ {
                   "StatusCode" : "200",
-                  "ResponseParameters" : { 
+                  "ResponseParameters" : {
                     "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
                     "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
                     "method.response.header.Access-Control-Allow-Origin": "'*'"
@@ -189,7 +189,7 @@
               },
               "MethodResponses" : [ {
                 "StatusCode" : "200",
-                "ResponseParameters" : { 
+                "ResponseParameters" : {
                   "method.response.header.Access-Control-Allow-Headers": false,
                   "method.response.header.Access-Control-Allow-Methods": false,
                   "method.response.header.Access-Control-Allow-Origin": false
@@ -197,13 +197,13 @@
                 } ]
             }
         },
-      
+
         "ApiResourceCartGET": {
             "DependsOn": "GatewayInvokeLambdaPermission",
             "Type": "AWS::ApiGateway::Method",
-            
+
             "Properties": {
-      
+
               "AuthorizationType": "NONE",
               "HttpMethod": "GET",
               "RestApiId": { "Ref": "RestApi" },
@@ -214,16 +214,16 @@
                 "IntegrationHttpMethod": "POST",
                 "Uri": { "Fn::Join": ["",[ "arn:aws:apigateway:", { "Ref": "AWS::Region"}, ":lambda:path/2015-03-31/functions/", { "Fn::GetAtt": ["MainFunction", "Arn"]}, "/invocations" ] ] }
               }
-      
+
             }
         },
 
         "ApiResourceCartPOST": {
             "DependsOn": "GatewayInvokeLambdaPermission",
             "Type": "AWS::ApiGateway::Method",
-            
+
             "Properties": {
-              
+
               "AuthorizationType": "NONE",
               "HttpMethod": "POST",
               "RestApiId": { "Ref": "RestApi" },
@@ -234,16 +234,16 @@
                 "IntegrationHttpMethod": "POST",
                 "Uri": { "Fn::Join": ["",[ "arn:aws:apigateway:", { "Ref": "AWS::Region"}, ":lambda:path/2015-03-31/functions/", { "Fn::GetAtt": ["MainFunction", "Arn"]}, "/invocations" ] ] }
               }
-              
+
             }
         },
 
         "ApiResourceCartDELETE": {
             "DependsOn": "GatewayInvokeLambdaPermission",
             "Type": "AWS::ApiGateway::Method",
-            
+
             "Properties": {
-      
+
               "AuthorizationType": "NONE",
               "HttpMethod": "DELETE",
               "RestApiId": { "Ref": "RestApi" },
@@ -254,7 +254,7 @@
                 "IntegrationHttpMethod": "POST",
                 "Uri": { "Fn::Join": ["",[ "arn:aws:apigateway:", { "Ref": "AWS::Region"}, ":lambda:path/2015-03-31/functions/", { "Fn::GetAtt": ["MainFunction", "Arn"]}, "/invocations" ] ] }
               }
-      
+
             }
         },
 
@@ -270,7 +270,7 @@
                 "Type" : "MOCK",
                 "IntegrationResponses" : [ {
                   "StatusCode" : "200",
-                  "ResponseParameters" : { 
+                  "ResponseParameters" : {
                     "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
                     "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
                     "method.response.header.Access-Control-Allow-Origin": "'*'"
@@ -281,7 +281,7 @@
               },
               "MethodResponses" : [ {
                 "StatusCode" : "200",
-                "ResponseParameters" : { 
+                "ResponseParameters" : {
                   "method.response.header.Access-Control-Allow-Headers": false,
                   "method.response.header.Access-Control-Allow-Methods": false,
                   "method.response.header.Access-Control-Allow-Origin": false
@@ -293,9 +293,9 @@
         "ApiResourceProductGET": {
             "DependsOn": "GatewayInvokeLambdaPermission",
             "Type": "AWS::ApiGateway::Method",
-            
+
             "Properties": {
-      
+
               "AuthorizationType": "NONE",
               "HttpMethod": "GET",
               "RestApiId": { "Ref": "RestApi" },
@@ -306,16 +306,16 @@
                 "IntegrationHttpMethod": "POST",
                 "Uri": { "Fn::Join": ["",[ "arn:aws:apigateway:", { "Ref": "AWS::Region"}, ":lambda:path/2015-03-31/functions/", { "Fn::GetAtt": ["MainFunction", "Arn"]}, "/invocations" ] ] }
               }
-      
+
             }
         },
 
         "ApiResourceProductPUT": {
             "DependsOn": "GatewayInvokeLambdaPermission",
             "Type": "AWS::ApiGateway::Method",
-            
+
             "Properties": {
-              
+
               "AuthorizationType": "NONE",
               "HttpMethod": "PUT",
               "RestApiId": { "Ref": "RestApi" },
@@ -326,16 +326,16 @@
                 "IntegrationHttpMethod": "POST",
                 "Uri": { "Fn::Join": ["",[ "arn:aws:apigateway:", { "Ref": "AWS::Region"}, ":lambda:path/2015-03-31/functions/", { "Fn::GetAtt": ["MainFunction", "Arn"]}, "/invocations" ] ] }
               }
-              
+
             }
         },
 
         "ApiResourceProductDELETE": {
             "DependsOn": "GatewayInvokeLambdaPermission",
             "Type": "AWS::ApiGateway::Method",
-            
+
             "Properties": {
-      
+
               "AuthorizationType": "NONE",
               "HttpMethod": "DELETE",
               "RestApiId": { "Ref": "RestApi" },
@@ -346,16 +346,16 @@
                 "IntegrationHttpMethod": "POST",
                 "Uri": { "Fn::Join": ["",[ "arn:aws:apigateway:", { "Ref": "AWS::Region"}, ":lambda:path/2015-03-31/functions/", { "Fn::GetAtt": ["MainFunction", "Arn"]}, "/invocations" ] ] }
               }
-      
+
             }
         },
 
         "ApiResourceConversionPOST": {
             "DependsOn": "GatewayInvokeLambdaPermission",
             "Type": "AWS::ApiGateway::Method",
-            
+
             "Properties": {
-              
+
               "AuthorizationType": "NONE",
               "HttpMethod": "POST",
               "RestApiId": { "Ref": "RestApi" },
@@ -366,7 +366,7 @@
                 "IntegrationHttpMethod": "POST",
                 "Uri": { "Fn::Join": ["",[ "arn:aws:apigateway:", { "Ref": "AWS::Region"}, ":lambda:path/2015-03-31/functions/", { "Fn::GetAtt": ["MainFunction", "Arn"]}, "/invocations" ] ] }
               }
-              
+
             }
         },
 
@@ -446,6 +446,38 @@
             "Properties" : {
             "ApiId" : { "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"] },
             "DefinitionS3Location" : "./ShoppingCartSchema.graphql"
+            }
+        },
+
+        "GraphQLQueryCartResolver": {
+            "Type": "AWS::AppSync::Resolver",
+            "DependsOn": "GraphQLSchema",
+            "Properties": {
+                "ApiId": {
+                    "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ]
+                },
+                "TypeName": "Query",
+                "FieldName": "cart",
+                "DataSourceName": { "Fn::GetAtt": [ "GraphQLDataSource", "Name" ] },
+                "RequestMappingTemplateS3Location": "./src/graphqlresolvers/getCart.resolver.velocity",
+                "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/getCart.response.velocity"
+            }
+        },
+
+        "GraphQLQueryProductResolver": {
+            "Type": "AWS::AppSync::Resolver",
+            "DependsOn": "GraphQLSchema",
+            "Properties": {
+                "ApiId": {
+                    "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ]
+                },
+                "TypeName": "Query",
+                "FieldName": "product",
+                "DataSourceName": {
+                    "Fn::GetAtt": [ "GraphQLDataSource", "Name" ]
+                },
+                "RequestMappingTemplateS3Location": "./src/graphqlresolvers/getProduct.resolver.velocity",
+                "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/getProduct.response.velocity"
             }
         }
 

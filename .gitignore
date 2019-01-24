@@ -189,3 +189,4 @@ venv.bak/
 .mypy_cache/
 .DS_Store
 packaged-stack.yml
+packaged.yml
