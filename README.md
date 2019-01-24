@@ -115,6 +115,8 @@ For the GraphQL, you can send, **at this moment**, the folowing queries:
 
 ### TODO
 
-1. Implement GraphQL mutations;
-2. Implement GraphQL subscriptions;
-3. Implement Authentication Provider using AWS Cognito.
+1. Implement Authentication Provider using AWS Cognito.
+2. Implement GraphQL mutations;
+3. Implement GraphQL subscriptions;
+4. Restrict Cart Product Update to permity only changes on quantity property;
+5. Create and Integrate Catalog Microservice;
