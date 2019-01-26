@@ -12,6 +12,131 @@
 
     "Resources": {
 
+        "UserPoolSNSRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "RoleName": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-UserPoolSNSRole"]] },
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [{
+                        "Effect": "Allow",
+                        "Principal": { "Service": ["cognito-idp.amazonaws.com"] },
+                        "Action": ["sts:AssumeRole"]
+                    }]
+                },
+                "Path": "/",
+                "Policies": [{
+                    "PolicyName": "CognitoSNSPolicy",
+                    "PolicyDocument": {
+                        "Version": "2012-10-17",
+                        "Statement": [{
+                                "Effect": "Allow",
+                                "Resource": "*",
+                                "Action": ["sns:publish"]
+                            }
+                        ]
+                    }
+                }]
+            }
+        },
+
+        "AuthenticatedUser": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "RoleName": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-AuthenticatedUser"]] },
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [{
+                        "Effect": "Allow",
+                        "Principal": { "Federated": ["cognito-identity.amazonaws.com"] },
+                        "Action": ["sts:AssumeRoleWithWebIdentity"]
+                    }]
+                },
+                "Path": "/",
+                "Policies": [{
+                    "PolicyName": "CognitoAuthenticatedUserPolicy",
+                    "PolicyDocument": {
+                        "Version": "2012-10-17",
+                        "Statement": [{
+                            "Effect": "Allow",
+                            "Resource": "*",
+                            "Action": ["mobileanalytics:PutEvents", "cognito-sync:*", "cognito-identity:*"]
+                        }]
+                    }
+                }]
+            }
+        },
+
+        "UnauthenticatedUser": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "RoleName": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-UnauthenticatedUser"]] },
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [{
+                        "Effect": "Allow",
+                        "Principal": { "Federated": ["cognito-identity.amazonaws.com"] },
+                        "Action": ["sts:AssumeRoleWithWebIdentity"]
+                    }]
+                },
+                "Path": "/",
+                "Policies": [{
+                    "PolicyName": "CognitoUnauthenticatedUserPolicy",
+                    "PolicyDocument": {
+                        "Version": "2012-10-17",
+                        "Statement": [{
+                                "Effect": "Allow",
+                                "Resource": "*",
+                                "Action": ["mobileanalytics:PutEvents", "cognito-sync:*"]
+                            }
+                        ]
+                    }
+                }]
+            }
+        },
+
+        "UserPool": {
+            "Type" : "AWS::Cognito::UserPool",
+            "Properties" : {
+              "SmsConfiguration" : {
+                "ExternalId" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-external"]] },
+                "SnsCallerArn" : { "Fn::GetAtt": ["UserPoolSNSRole", "Arn"] }
+              },
+              "UserPoolName" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-UserPool"]] }
+            }
+        },
+
+        "UserPoolClient": {
+            "Type" : "AWS::Cognito::UserPoolClient",
+            "Properties" : {
+                "UserPoolId" : { "Ref": "UserPool" },
+                "ClientName" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-WebClient"]] },
+                "GenerateSecret" : false,
+                "RefreshTokenValidity" : 5
+            }
+        },
+
+        "IdentityPool": {
+            "Type" : "AWS::Cognito::IdentityPool",
+            "Properties" : {
+              "IdentityPoolName" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "idPool"]] },
+              "AllowUnauthenticatedIdentities" : true,
+              "CognitoIdentityProviders" : [ {
+                "ClientId" : { "Ref": "UserPoolClient" },
+                "ProviderName" : { "Fn::GetAtt": ["UserPool", "ProviderName"] },
+                "ServerSideTokenCheck" : true
+              }]
+            }
+        },
+
+        "IdentityPoolRoleMapping": {
+            "Type" : "AWS::Cognito::IdentityPoolRoleAttachment",
+            "Properties" : {
+              "IdentityPoolId" : { "Ref": "IdentityPool" },
+              "Roles" : { "authenticated":{ "Fn::GetAtt": ["AuthenticatedUser", "Arn"] }, "unauthenticated":{ "Fn::GetAtt": ["UnauthenticatedUser", "Arn"] } }
+            }
+        },
+
         "MainTable": {
             "Type": "AWS::DynamoDB::Table",
             "Properties": {
@@ -590,6 +715,16 @@
     },
 
     "Outputs": {
+
+        "UserPoolId": {
+            "Value": { "Ref" : "UserPool" },
+            "Description": "The Cognito UserPool for the Stack"
+        },
+
+        "UserPoolClientId": {
+            "Value": { "Ref" : "UserPoolClient" },
+            "Description": "The Cognito UserPoolClientId for the Stack"
+        },
 
         "APIUrl": {
             "Value": { "Fn::Join" : [ "", [ "https://", { "Ref" : "RestApi" }, ".execute-api.", { "Ref" : "AWS::Region" }, ".amazonaws.com/", { "Ref" : "StageName" }, "/" ] ] },

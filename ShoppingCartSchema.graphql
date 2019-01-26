@@ -14,7 +14,7 @@ type Mutation {
     updateProduct(cartId: String, sku: String!, name: String!, quantity: Int!, price: Float!): Product
     removeProduct(cartId: String, sku: String!): Boolean
     clearCart(cartId: String): Boolean
-    convertCart(cartId: String!): Boolean
+    convertCart(cartId: String!, sessionId: String!): Boolean
 }
 
 type Subscription {

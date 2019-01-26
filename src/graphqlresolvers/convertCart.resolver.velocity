@@ -5,6 +5,7 @@
   	"AppSyncOperation": true,
     "httpMethod": "POST",
     "resource": "/conversion",
-    "cartId": "$context.args.cartId"
+    "cartId": "$context.args.cartId",
+    "sessionId": "$context.args.sessionId"
   }
 }
