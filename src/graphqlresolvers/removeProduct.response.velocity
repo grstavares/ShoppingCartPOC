@@ -1,0 +1,5 @@
+#if( $context.result.statusCode == 200 )
+    true
+#else
+    $utils.error($context.result.body, $context.result.statusCode, $context.result.body)
+#end

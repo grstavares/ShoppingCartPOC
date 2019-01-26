@@ -500,6 +500,91 @@
                 "RequestMappingTemplateS3Location": "./src/graphqlresolvers/getProduct.resolver.velocity",
                 "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/getProduct.response.velocity"
             }
+        },
+
+        "GraphQLaddToCartResolver": {
+            "Type": "AWS::AppSync::Resolver",
+            "DependsOn": "GraphQLSchema",
+            "Properties": {
+                "ApiId": {
+                    "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ]
+                },
+                "TypeName": "Mutation",
+                "FieldName": "addToCart",
+                "DataSourceName": {
+                    "Fn::GetAtt": [ "GraphQLLambdaDataSource", "Name" ]
+                },
+                "RequestMappingTemplateS3Location": "./src/graphqlresolvers/addToCart.resolver.velocity",
+                "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/addToCart.response.velocity"
+            }
+        },
+
+        "GraphQLupdateProductResolver": {
+            "Type": "AWS::AppSync::Resolver",
+            "DependsOn": "GraphQLSchema",
+            "Properties": {
+                "ApiId": {
+                    "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ]
+                },
+                "TypeName": "Mutation",
+                "FieldName": "updateProduct",
+                "DataSourceName": {
+                    "Fn::GetAtt": [ "GraphQLLambdaDataSource", "Name" ]
+                },
+                "RequestMappingTemplateS3Location": "./src/graphqlresolvers/updateProduct.resolver.velocity",
+                "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/updateProduct.response.velocity"
+            }
+        },
+
+        "GraphQLremoveProductResolver": {
+            "Type": "AWS::AppSync::Resolver",
+            "DependsOn": "GraphQLSchema",
+            "Properties": {
+                "ApiId": {
+                    "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ]
+                },
+                "TypeName": "Mutation",
+                "FieldName": "removeProduct",
+                "DataSourceName": {
+                    "Fn::GetAtt": [ "GraphQLLambdaDataSource", "Name" ]
+                },
+                "RequestMappingTemplateS3Location": "./src/graphqlresolvers/removeProduct.resolver.velocity",
+                "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/removeProduct.response.velocity"
+            }
+        },
+
+        "GraphQLclearCartResolver": {
+            "Type": "AWS::AppSync::Resolver",
+            "DependsOn": "GraphQLSchema",
+            "Properties": {
+                "ApiId": {
+                    "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ]
+                },
+                "TypeName": "Mutation",
+                "FieldName": "clearCart",
+                "DataSourceName": {
+                    "Fn::GetAtt": [ "GraphQLLambdaDataSource", "Name" ]
+                },
+                "RequestMappingTemplateS3Location": "./src/graphqlresolvers/clearCart.resolver.velocity",
+                "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/clearCart.response.velocity"
+            }
+        },
+
+        "GraphQLconvertCartResolver": {
+            "Type": "AWS::AppSync::Resolver",
+            "DependsOn": "GraphQLSchema",
+            "Properties": {
+                "ApiId": {
+                    "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ]
+                },
+                "TypeName": "Mutation",
+                "FieldName": "convertCart",
+                "DataSourceName": {
+                    "Fn::GetAtt": [ "GraphQLLambdaDataSource", "Name" ]
+                },
+                "RequestMappingTemplateS3Location": "./src/graphqlresolvers/convertCart.resolver.velocity",
+                "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/convertCart.response.velocity"
+            }
         }
 
     },
