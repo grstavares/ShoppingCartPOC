@@ -386,15 +386,22 @@
                 "PolicyName": "root",
                 "PolicyDocument": {
                   "Version": "2012-10-17",
-                  "Statement": [{
+                  "Statement": [
+                    {
                       "Effect": "Allow",
                       "Resource": { "Fn::GetAtt": ["MainTable", "Arn"] },
                       "Action": [
                         "dynamodb:GetItem", "dynamodb:Query", "dynamodb:Scan",
                         "dynamodb:BatchGetItem", "dynamodb:BatchWriteItem",
                         "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem" ]
-                    },
-                    {
+                    }, {
+                        "Effect": "Allow",
+                        "Resource": [
+                            { "Fn::GetAtt": ["MainFunction", "Arn"] },
+                            { "Fn::Join": ["", [{ "Fn::GetAtt": ["MainFunction", "Arn"] }, ":*"]] }
+                        ],
+                        "Action": ["lambda:invokeFunction"]
+                    }, {
                       "Effect": "Allow",
                       "Resource": "*",
                       "Action": ["logs:CreateLogGroup", "logs:PutLogEvents", "logs:CreateLogStream"]
@@ -415,7 +422,7 @@
                 "FieldLogLevel" : "NONE"
               }
             }
-          },
+        },
 
         "GraphQLAPIKey": {
             "Type" : "AWS::AppSync::ApiKey",
@@ -438,6 +445,20 @@
                 "AwsRegion" : { "Ref" : "AWS::Region" },
                 "UseCallerCredentials" : false
             }
+            }
+        },
+
+        "GraphQLLambdaDataSource" : {
+            "Type" : "AWS::AppSync::DataSource",
+            "Properties" : {
+            "Type" : "AWS_LAMBDA",
+            "Description" : "ShoppingCart Microservice Main Function",
+            "ServiceRoleArn" : { "Fn::GetAtt": ["AppSyncExecutionRole", "Arn"] },
+            "ApiId" : { "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"] },
+            "Name" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "LambdaDataSource"]] },
+            "LambdaConfig" : {
+                "LambdaFunctionArn" : { "Fn::GetAtt": ["MainFunction", "Arn"] }
+              }
             }
         },
 

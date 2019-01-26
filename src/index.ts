@@ -10,8 +10,8 @@ export function setInjector(_injector: DependencyInjector): void { injector = _i
 
 export function handler(event: APIGatewayProxyEvent, context: Context, callback: Callback): void {
 
-    const resolver = (injector === null) ? new AWSDependencyInjector(context) : injector;
-    const eventParser = injector.getInputParser(event);
+    const resolver = (injector === null) ? new AWSDependencyInjector(context.awsRequestId) : injector;
+    const eventParser = resolver.getInputParser(event);
     const operationBuilder = new OperationBuilder(eventParser, context.awsRequestId);
 
     operationBuilder.executeOperation(resolver)

@@ -1,5 +1,4 @@
 /* tslint:disable: no-implicit-dependencies */
-import { Context } from 'aws-lambda';
 import { MessageBus, MetricBus, NoSQLTable, BackendMetrics, InputParser } from '../common/backend';
 import { ErrorBuilder, ResponseBuilder, MetricBuilder } from '../common/utilities';
 import { InfrastructureMetric } from '../common/types';
@@ -12,9 +11,10 @@ export enum DependencyInjectorError {
 
 export class AWSDependencyInjector {
 
-    private readonly traceId: string;
+    // private readonly traceId: string;
 
-    constructor(private readonly context: Context) { this.traceId = context.awsRequestId; }
+    // constructor(private readonly context: Context) { this.traceId = context.awsRequestId; }
+    constructor(private readonly traceId: string) { }
 
     public async getNoSQLTable(): Promise<NoSQLTable> {
 
@@ -58,14 +58,17 @@ export class AWSDependencyInjector {
 
     public async getMetricBus(): Promise<MetricBus> {
 
-        return new AWSMetricPublisher(this.context);
+        return new AWSMetricPublisher();
 
     }
 
     public getInputParser(event: any): InputParser {
 
+        const appSyncIdentifier = 'AppSyncOperation';
         /* tslint:disable no-unsafe-any*/
-        return AWSParser.parseAPIGatewayEvent(event);
+        if (event[appSyncIdentifier] === null || event[appSyncIdentifier] == undefined) {
+            return AWSParser.parseAPIGatewayEvent(event);
+        } else { return AWSParser.parseAppSyncEvent(event); }
 
     }
 

@@ -31,9 +31,15 @@ export class AWSParser {
 
     }
 
-    public static parseAPIGatewayEvent(event: APIGatewayProxyEvent): APIGatewayEventParser {
+    public static parseAPIGatewayEvent(event: APIGatewayProxyEvent): InputParser {
 
         return new APIGatewayEventParser(event);
+
+    }
+
+    public static parseAppSyncEvent(event: AppSyncEvent): InputParser {
+
+        return new AppSyncEventParser(event);
 
     }
 
@@ -91,4 +97,35 @@ export class APIGatewayEventParser implements InputParser {
 
     }
 
+}
+
+export class AppSyncEventParser implements InputParser {
+
+    private readonly AuthorizationheaderName = 'Authorization';
+
+    constructor(private readonly event: AppSyncEvent) { }
+
+    public getHttpMethod(): string { return this.event.httpMethod; }
+
+    public getUserId(): string { return this.event.cartId; }
+
+    public getPathParam(name: string): string { return this.event.sku; }
+
+    public getQueryParam(name: string): string { return this.event[name]; }
+
+    public getResource(): string { return this.event.resource; }
+
+    public getPayload(): Object { return { sku: this.event.sku, name: this.event.name, quantity: this.event.quantity, price: this.event.price }; }
+
+}
+
+export interface AppSyncEvent {
+    httpMethod: string;
+    resource: string;
+    sessionId?: string;
+    cartId: string;
+    sku: string;
+    name: string;
+    quantity: number;
+    price: number;
 }

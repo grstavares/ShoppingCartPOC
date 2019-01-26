@@ -3,7 +3,6 @@ import { CloudWatch, AWSError } from 'aws-sdk';
 import { MetricBus } from '../common';
 import { InfrastructureMetric } from '../common/types';
 import { AWSParser } from './parser';
-import { Context } from 'aws-lambda';
 
 /* tslint:disable:no-var-requires */
 // var AWSXRay = require('aws-xray-sdk');
@@ -12,7 +11,7 @@ export class AWSMetricPublisher implements MetricBus {
 
     private readonly cloudwatch: CloudWatch;
 
-    constructor(private readonly context: Context) {
+    constructor() {
 
         this.cloudwatch = new CloudWatch();
 

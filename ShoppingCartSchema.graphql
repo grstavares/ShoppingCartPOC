@@ -10,8 +10,8 @@ type Query {
 }
 
 type Mutation {
-    addToCart(cartId: String, sku: String!, name: String!, quantity: Int!, price: Float!): Boolean
-    updateProduct(cartId: String, sku: String!, name: String!, quantity: Int!, price: Float!): Boolean
+    addToCart(cartId: String, sku: String!, name: String!, quantity: Int!, price: Float!): Product
+    updateProduct(cartId: String, sku: String!, name: String!, quantity: Int!, price: Float!): Product
     removeProduct(cartId: String, sku: String!): Boolean
     clearCart(cartId: String): Boolean
     convertCart(cartId: String!): Boolean
