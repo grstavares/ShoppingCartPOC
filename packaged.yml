@@ -1,0 +1,867 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Shopping Cart POC using microservices architecture
+Outputs:
+  APIUrl:
+    Description: The Endpoint URL of REST API.
+    Value:
+      Fn::Join:
+      - ''
+      - - https://
+        - Ref: RestApi
+        - .execute-api.
+        - Ref: AWS::Region
+        - .amazonaws.com/
+        - Ref: StageName
+        - /
+  GraphQLAPIKey:
+    Description: The AOIKey of GraphQL API.
+    Value:
+      Fn::GetAtt:
+      - GraphQLAPIKey
+      - ApiKey
+  GraphQLUrl:
+    Description: The Endpoint URL of GraphQL API.
+    Value:
+      Fn::GetAtt:
+      - GraphQLEndpoint
+      - GraphQLUrl
+  UserPoolClientId:
+    Description: The Cognito UserPoolClientId for the Stack
+    Value:
+      Ref: UserPoolClient
+  UserPoolId:
+    Description: The Cognito UserPool for the Stack
+    Value:
+      Ref: UserPool
+Parameters:
+  StageName:
+    Default: poc
+    Description: Name of the API Gateway Stage Where the API will be available.
+    Type: String
+Resources:
+  APIDeployment:
+    DependsOn:
+    - ApiResourceCartGET
+    - ApiResourceCartPOST
+    - ApiResourceCartDELETE
+    - ApiResourceCartOPTIONS
+    - ApiResourceProductGET
+    - ApiResourceProductPUT
+    - ApiResourceProductDELETE
+    - ApiResourceProductOPTIONS
+    - ApiResourceConversionPOST
+    Properties:
+      Description: Automated API Deployment
+      RestApiId:
+        Ref: RestApi
+      StageDescription:
+        CachingEnabled: false
+        DataTraceEnabled: false
+        Description: Stage for POC Evaluation
+        TracingEnabled: true
+      StageName:
+        Ref: StageName
+    Type: AWS::ApiGateway::Deployment
+  ApiResourceCart:
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+        - RestApi
+        - RootResourceId
+      PathPart: cart
+      RestApiId:
+        Ref: RestApi
+    Type: AWS::ApiGateway::Resource
+  ApiResourceCartDELETE:
+    DependsOn: GatewayInvokeLambdaPermission
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: DELETE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+          - ''
+          - - 'arn:aws:apigateway:'
+            - Ref: AWS::Region
+            - :lambda:path/2015-03-31/functions/
+            - Fn::GetAtt:
+              - MainFunction
+              - Arn
+            - /invocations
+      RequestParameters:
+        method.request.querystring.sessionId: true
+      ResourceId:
+        Ref: ApiResourceCart
+      RestApiId:
+        Ref: RestApi
+    Type: AWS::ApiGateway::Method
+  ApiResourceCartGET:
+    DependsOn: GatewayInvokeLambdaPermission
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: GET
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+          - ''
+          - - 'arn:aws:apigateway:'
+            - Ref: AWS::Region
+            - :lambda:path/2015-03-31/functions/
+            - Fn::GetAtt:
+              - MainFunction
+              - Arn
+            - /invocations
+      RequestParameters:
+        method.request.querystring.sessionId: true
+      ResourceId:
+        Ref: ApiResourceCart
+      RestApiId:
+        Ref: RestApi
+    Type: AWS::ApiGateway::Method
+  ApiResourceCartOPTIONS:
+    DependsOn: GatewayInvokeLambdaPermission
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
+            method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+          ResponseTemplates:
+            application/json: '{''statusCode'': 200}'
+          StatusCode: '200'
+        PassthroughBehavior: WHEN_NO_MATCH
+        Type: MOCK
+      MethodResponses:
+      - ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: false
+          method.response.header.Access-Control-Allow-Methods: false
+          method.response.header.Access-Control-Allow-Origin: false
+        StatusCode: '200'
+      ResourceId:
+        Ref: ApiResourceCart
+      RestApiId:
+        Ref: RestApi
+    Type: AWS::ApiGateway::Method
+  ApiResourceCartPOST:
+    DependsOn: GatewayInvokeLambdaPermission
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: POST
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+          - ''
+          - - 'arn:aws:apigateway:'
+            - Ref: AWS::Region
+            - :lambda:path/2015-03-31/functions/
+            - Fn::GetAtt:
+              - MainFunction
+              - Arn
+            - /invocations
+      RequestParameters:
+        method.request.querystring.sessionId: true
+      ResourceId:
+        Ref: ApiResourceCart
+      RestApiId:
+        Ref: RestApi
+    Type: AWS::ApiGateway::Method
+  ApiResourceConversion:
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+        - RestApi
+        - RootResourceId
+      PathPart: conversion
+      RestApiId:
+        Ref: RestApi
+    Type: AWS::ApiGateway::Resource
+  ApiResourceConversionPOST:
+    DependsOn: GatewayInvokeLambdaPermission
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: POST
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+          - ''
+          - - 'arn:aws:apigateway:'
+            - Ref: AWS::Region
+            - :lambda:path/2015-03-31/functions/
+            - Fn::GetAtt:
+              - MainFunction
+              - Arn
+            - /invocations
+      RequestParameters:
+        method.request.querystring.sessionId: true
+      ResourceId:
+        Ref: ApiResourceConversion
+      RestApiId:
+        Ref: RestApi
+    Type: AWS::ApiGateway::Method
+  ApiResourceProduct:
+    Properties:
+      ParentId:
+        Ref: ApiResourceCart
+      PathPart: '{productSku}'
+      RestApiId:
+        Ref: RestApi
+    Type: AWS::ApiGateway::Resource
+  ApiResourceProductDELETE:
+    DependsOn: GatewayInvokeLambdaPermission
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: DELETE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+          - ''
+          - - 'arn:aws:apigateway:'
+            - Ref: AWS::Region
+            - :lambda:path/2015-03-31/functions/
+            - Fn::GetAtt:
+              - MainFunction
+              - Arn
+            - /invocations
+      RequestParameters:
+        method.request.path.productSku: true
+        method.request.querystring.sessionId: true
+      ResourceId:
+        Ref: ApiResourceProduct
+      RestApiId:
+        Ref: RestApi
+    Type: AWS::ApiGateway::Method
+  ApiResourceProductGET:
+    DependsOn: GatewayInvokeLambdaPermission
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: GET
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+          - ''
+          - - 'arn:aws:apigateway:'
+            - Ref: AWS::Region
+            - :lambda:path/2015-03-31/functions/
+            - Fn::GetAtt:
+              - MainFunction
+              - Arn
+            - /invocations
+      RequestParameters:
+        method.request.path.productSku: true
+        method.request.querystring.sessionId: true
+      ResourceId:
+        Ref: ApiResourceProduct
+      RestApiId:
+        Ref: RestApi
+    Type: AWS::ApiGateway::Method
+  ApiResourceProductOPTIONS:
+    DependsOn: GatewayInvokeLambdaPermission
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
+            method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+          ResponseTemplates:
+            application/json: '{''statusCode'': 200}'
+          StatusCode: '200'
+        PassthroughBehavior: WHEN_NO_MATCH
+        Type: MOCK
+      MethodResponses:
+      - ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: false
+          method.response.header.Access-Control-Allow-Methods: false
+          method.response.header.Access-Control-Allow-Origin: false
+        StatusCode: '200'
+      ResourceId:
+        Ref: ApiResourceProduct
+      RestApiId:
+        Ref: RestApi
+    Type: AWS::ApiGateway::Method
+  ApiResourceProductPUT:
+    DependsOn: GatewayInvokeLambdaPermission
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: PUT
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+          - ''
+          - - 'arn:aws:apigateway:'
+            - Ref: AWS::Region
+            - :lambda:path/2015-03-31/functions/
+            - Fn::GetAtt:
+              - MainFunction
+              - Arn
+            - /invocations
+      RequestParameters:
+        method.request.path.productSku: true
+        method.request.querystring.sessionId: true
+      ResourceId:
+        Ref: ApiResourceProduct
+      RestApiId:
+        Ref: RestApi
+    Type: AWS::ApiGateway::Method
+  AppSyncExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service:
+            - appsync.amazonaws.com
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action:
+            - dynamodb:GetItem
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:BatchGetItem
+            - dynamodb:BatchWriteItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+              - MainTable
+              - Arn
+          - Action:
+            - lambda:invokeFunction
+            Effect: Allow
+            Resource:
+            - Fn::GetAtt:
+              - MainFunction
+              - Arn
+            - Fn::Join:
+              - ''
+              - - Fn::GetAtt:
+                  - MainFunction
+                  - Arn
+                - :*
+          - Action:
+            - logs:CreateLogGroup
+            - logs:PutLogEvents
+            - logs:CreateLogStream
+            Effect: Allow
+            Resource: '*'
+          Version: '2012-10-17'
+        PolicyName: root
+    Type: AWS::IAM::Role
+  AuthenticatedUser:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - sts:AssumeRoleWithWebIdentity
+          Effect: Allow
+          Principal:
+            Federated:
+            - cognito-identity.amazonaws.com
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action:
+            - mobileanalytics:PutEvents
+            - cognito-sync:*
+            - cognito-identity:*
+            Effect: Allow
+            Resource: '*'
+          Version: '2012-10-17'
+        PolicyName: CognitoAuthenticatedUserPolicy
+      RoleName:
+        Fn::Join:
+        - ''
+        - - Ref: AWS::StackName
+          - -AuthenticatedUser
+    Type: AWS::IAM::Role
+  GatewayInvokeLambdaPermission:
+    Properties:
+      Action: lambda:invokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - MainFunction
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:'
+          - Ref: AWS::Region
+          - ':'
+          - Ref: AWS::AccountId
+          - ':'
+          - Ref: RestApi
+          - /*
+    Type: AWS::Lambda::Permission
+  GraphQLAPIKey:
+    Properties:
+      ApiId:
+        Fn::GetAtt:
+        - GraphQLEndpoint
+        - ApiId
+      Description: POC Key
+    Type: AWS::AppSync::ApiKey
+  GraphQLDataSource:
+    Properties:
+      ApiId:
+        Fn::GetAtt:
+        - GraphQLEndpoint
+        - ApiId
+      Description: ShoppingCart Microservice Repository
+      DynamoDBConfig:
+        AwsRegion:
+          Ref: AWS::Region
+        TableName:
+          Ref: MainTable
+        UseCallerCredentials: false
+      Name:
+        Fn::Join:
+        - ''
+        - - Ref: AWS::StackName
+          - DataSource
+      ServiceRoleArn:
+        Fn::GetAtt:
+        - AppSyncExecutionRole
+        - Arn
+      Type: AMAZON_DYNAMODB
+    Type: AWS::AppSync::DataSource
+  GraphQLEndpoint:
+    Properties:
+      AuthenticationType: API_KEY
+      LogConfig:
+        CloudWatchLogsRoleArn:
+          Fn::GetAtt:
+          - AppSyncExecutionRole
+          - Arn
+        FieldLogLevel: NONE
+      Name:
+        Fn::Join:
+        - ''
+        - - Ref: AWS::StackName
+          - -GraphQL
+    Type: AWS::AppSync::GraphQLApi
+  GraphQLLambdaDataSource:
+    Properties:
+      ApiId:
+        Fn::GetAtt:
+        - GraphQLEndpoint
+        - ApiId
+      Description: ShoppingCart Microservice Main Function
+      LambdaConfig:
+        LambdaFunctionArn:
+          Fn::GetAtt:
+          - MainFunction
+          - Arn
+      Name:
+        Fn::Join:
+        - ''
+        - - Ref: AWS::StackName
+          - LambdaDataSource
+      ServiceRoleArn:
+        Fn::GetAtt:
+        - AppSyncExecutionRole
+        - Arn
+      Type: AWS_LAMBDA
+    Type: AWS::AppSync::DataSource
+  GraphQLQueryCartResolver:
+    DependsOn: GraphQLSchema
+    Properties:
+      ApiId:
+        Fn::GetAtt:
+        - GraphQLEndpoint
+        - ApiId
+      DataSourceName:
+        Fn::GetAtt:
+        - GraphQLDataSource
+        - Name
+      FieldName: cart
+      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/99409c569e8aea0ff549b37a717b1ae0
+      ResponseMappingTemplateS3Location: s3://grstavares-code-us-east-1/b84ede9ff91570aea07957f69b25646c
+      TypeName: Query
+    Type: AWS::AppSync::Resolver
+  GraphQLQueryProductResolver:
+    DependsOn: GraphQLSchema
+    Properties:
+      ApiId:
+        Fn::GetAtt:
+        - GraphQLEndpoint
+        - ApiId
+      DataSourceName:
+        Fn::GetAtt:
+        - GraphQLDataSource
+        - Name
+      FieldName: product
+      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/93716403b1520464465dcca5d4913ed3
+      ResponseMappingTemplateS3Location: s3://grstavares-code-us-east-1/01b683ca0d1d88e5ee80641bcf8e5a7d
+      TypeName: Query
+    Type: AWS::AppSync::Resolver
+  GraphQLSchema:
+    Properties:
+      ApiId:
+        Fn::GetAtt:
+        - GraphQLEndpoint
+        - ApiId
+      DefinitionS3Location: s3://grstavares-code-us-east-1/97a9a8a749a51f26edd00ff4e1dfc542
+    Type: AWS::AppSync::GraphQLSchema
+  GraphQLaddToCartResolver:
+    DependsOn: GraphQLSchema
+    Properties:
+      ApiId:
+        Fn::GetAtt:
+        - GraphQLEndpoint
+        - ApiId
+      DataSourceName:
+        Fn::GetAtt:
+        - GraphQLLambdaDataSource
+        - Name
+      FieldName: addToCart
+      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/83f660ebf18e534211e612659a153314
+      ResponseMappingTemplateS3Location: s3://grstavares-code-us-east-1/cbb70c6e07778ee20e3415b3170f156a
+      TypeName: Mutation
+    Type: AWS::AppSync::Resolver
+  GraphQLclearCartResolver:
+    DependsOn: GraphQLSchema
+    Properties:
+      ApiId:
+        Fn::GetAtt:
+        - GraphQLEndpoint
+        - ApiId
+      DataSourceName:
+        Fn::GetAtt:
+        - GraphQLLambdaDataSource
+        - Name
+      FieldName: clearCart
+      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/d1d41f29198f82ea7b8871a8f18dbe0b
+      ResponseMappingTemplateS3Location: s3://grstavares-code-us-east-1/8475800f476cb6068261e06946105916
+      TypeName: Mutation
+    Type: AWS::AppSync::Resolver
+  GraphQLconvertCartResolver:
+    DependsOn: GraphQLSchema
+    Properties:
+      ApiId:
+        Fn::GetAtt:
+        - GraphQLEndpoint
+        - ApiId
+      DataSourceName:
+        Fn::GetAtt:
+        - GraphQLLambdaDataSource
+        - Name
+      FieldName: convertCart
+      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/1f001ea36e679a9784a6e037fc3914ca
+      ResponseMappingTemplateS3Location: s3://grstavares-code-us-east-1/8475800f476cb6068261e06946105916
+      TypeName: Mutation
+    Type: AWS::AppSync::Resolver
+  GraphQLremoveProductResolver:
+    DependsOn: GraphQLSchema
+    Properties:
+      ApiId:
+        Fn::GetAtt:
+        - GraphQLEndpoint
+        - ApiId
+      DataSourceName:
+        Fn::GetAtt:
+        - GraphQLLambdaDataSource
+        - Name
+      FieldName: removeProduct
+      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/528a1a8a219577ae4a1e14a6f445c596
+      ResponseMappingTemplateS3Location: s3://grstavares-code-us-east-1/8475800f476cb6068261e06946105916
+      TypeName: Mutation
+    Type: AWS::AppSync::Resolver
+  GraphQLupdateProductResolver:
+    DependsOn: GraphQLSchema
+    Properties:
+      ApiId:
+        Fn::GetAtt:
+        - GraphQLEndpoint
+        - ApiId
+      DataSourceName:
+        Fn::GetAtt:
+        - GraphQLLambdaDataSource
+        - Name
+      FieldName: updateProduct
+      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/5e8682bad9cb7350dff6426766fb2e3a
+      ResponseMappingTemplateS3Location: s3://grstavares-code-us-east-1/cbb70c6e07778ee20e3415b3170f156a
+      TypeName: Mutation
+    Type: AWS::AppSync::Resolver
+  IdentityPool:
+    Properties:
+      AllowUnauthenticatedIdentities: true
+      CognitoIdentityProviders:
+      - ClientId:
+          Ref: UserPoolClient
+        ProviderName:
+          Fn::GetAtt:
+          - UserPool
+          - ProviderName
+        ServerSideTokenCheck: true
+      IdentityPoolName:
+        Fn::Join:
+        - ''
+        - - Ref: AWS::StackName
+          - idPool
+    Type: AWS::Cognito::IdentityPool
+  IdentityPoolRoleMapping:
+    Properties:
+      IdentityPoolId:
+        Ref: IdentityPool
+      Roles:
+        authenticated:
+          Fn::GetAtt:
+          - AuthenticatedUser
+          - Arn
+        unauthenticated:
+          Fn::GetAtt:
+          - UnauthenticatedUser
+          - Arn
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+  MainFunction:
+    Properties:
+      Code:
+        S3Bucket: grstavares-code-us-east-1
+        S3Key: 8b9497e1e3dbdedd2d93ece22470e229
+      Description:
+        Fn::Join:
+        - ''
+        - - Ref: AWS::StackName
+          - -MainFunction
+      Environment:
+        Variables:
+          DYNAMO_TABLE_NAME:
+            Ref: MainTable
+          SNS_TOPIC_ARN:
+            Ref: MessageBus
+      FunctionName:
+        Fn::Join:
+        - ''
+        - - Ref: AWS::StackName
+          - -MainFunction
+      Handler: index.handler
+      MemorySize: 128
+      Role:
+        Fn::GetAtt:
+        - MainFunctionExecutionRole
+        - Arn
+      Runtime: nodejs8.10
+      Timeout: 10
+    Type: AWS::Lambda::Function
+  MainFunctionExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action:
+            - dynamodb:GetItem
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:BatchGetItem
+            - dynamodb:BatchWriteItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+              - MainTable
+              - Arn
+          - Action:
+            - sns:Publish
+            Effect: Allow
+            Resource:
+              Ref: MessageBus
+          - Action:
+            - cloudwatch:PutMetricData
+            - logs:CreateLogGroup
+            - logs:PutLogEvents
+            - logs:CreateLogStream
+            Effect: Allow
+            Resource: '*'
+          - Action:
+            - xray:PutTelemetryRecords
+            - xray:PutTraceSegments
+            Effect: Allow
+            Resource: '*'
+          Version: '2012-10-17'
+        PolicyName: root
+      RoleName:
+        Fn::Join:
+        - ''
+        - - Ref: AWS::StackName
+          - -MainFunction-ExecRole
+    Type: AWS::IAM::Role
+  MainTable:
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: cartId
+        AttributeType: S
+      - AttributeName: sku
+        AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+      - AttributeName: cartId
+        KeyType: HASH
+      - AttributeName: sku
+        KeyType: RANGE
+      TableName:
+        Fn::Join:
+        - ''
+        - - Ref: AWS::StackName
+          - -MainTable
+      Tags:
+      - Key: Project
+        Value: Darjelling
+      - Key: Service
+        Value: ShoppingCart
+      - Key: Developer
+        Value: GustavoTavares
+      - Key: Version
+        Value: POC
+    Type: AWS::DynamoDB::Table
+  MessageBus:
+    Properties:
+      DisplayName:
+        Fn::Join:
+        - ''
+        - - Ref: AWS::StackName
+          - -Topic
+      TopicName:
+        Fn::Join:
+        - ''
+        - - Ref: AWS::StackName
+          - -Topic
+    Type: AWS::SNS::Topic
+  RestApi:
+    Properties:
+      Description:
+        Fn::Join:
+        - ''
+        - - 'REST API for Shopping Cart POC - '
+          - Ref: AWS::StackName
+      Name:
+        Fn::Join:
+        - '-'
+        - - Ref: AWS::StackName
+          - API
+    Type: AWS::ApiGateway::RestApi
+  UnauthenticatedUser:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - sts:AssumeRoleWithWebIdentity
+          Effect: Allow
+          Principal:
+            Federated:
+            - cognito-identity.amazonaws.com
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action:
+            - mobileanalytics:PutEvents
+            - cognito-sync:*
+            Effect: Allow
+            Resource: '*'
+          Version: '2012-10-17'
+        PolicyName: CognitoUnauthenticatedUserPolicy
+      RoleName:
+        Fn::Join:
+        - ''
+        - - Ref: AWS::StackName
+          - -UnauthenticatedUser
+    Type: AWS::IAM::Role
+  UserPool:
+    Properties:
+      SmsConfiguration:
+        ExternalId:
+          Fn::Join:
+          - ''
+          - - Ref: AWS::StackName
+            - -external
+        SnsCallerArn:
+          Fn::GetAtt:
+          - UserPoolSNSRole
+          - Arn
+      UserPoolName:
+        Fn::Join:
+        - ''
+        - - Ref: AWS::StackName
+          - -UserPool
+    Type: AWS::Cognito::UserPool
+  UserPoolClient:
+    Properties:
+      ClientName:
+        Fn::Join:
+        - ''
+        - - Ref: AWS::StackName
+          - -WebClient
+      GenerateSecret: false
+      RefreshTokenValidity: 5
+      UserPoolId:
+        Ref: UserPool
+    Type: AWS::Cognito::UserPoolClient
+  UserPoolSNSRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service:
+            - cognito-idp.amazonaws.com
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action:
+            - sns:publish
+            Effect: Allow
+            Resource: '*'
+          Version: '2012-10-17'
+        PolicyName: CognitoSNSPolicy
+      RoleName:
+        Fn::Join:
+        - ''
+        - - Ref: AWS::StackName
+          - -UserPoolSNSRole
+    Type: AWS::IAM::Role
