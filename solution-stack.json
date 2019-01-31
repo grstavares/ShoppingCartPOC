@@ -156,6 +156,23 @@
             }
         },
 
+        "CatalogTable": {
+          "Type": "AWS::DynamoDB::Table",
+          "Properties": {
+              "AttributeDefinitions": [
+                  {"AttributeName" : "sku", "AttributeType" : "S" }],
+              "BillingMode": "PAY_PER_REQUEST",
+              "KeySchema": [
+                  { "AttributeName" : "sku", "KeyType" : "HASH" }],
+              "TableName": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-Catalog"]] },
+              "Tags": [
+                  {"Key" : "Project", "Value" : "Darjelling"},
+                  {"Key" : "Service", "Value" : "ShoppingCart"},
+                  {"Key" : "Developer", "Value" : "GustavoTavares"},
+                  {"Key" : "Version", "Value" : "POC"}]
+          }
+      },
+
         "MainFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
@@ -514,7 +531,7 @@
                   "Statement": [
                     {
                       "Effect": "Allow",
-                      "Resource": { "Fn::GetAtt": ["MainTable", "Arn"] },
+                      "Resource": [{ "Fn::GetAtt": ["MainTable", "Arn"] }, { "Fn::GetAtt": ["CatalogTable", "Arn"] }],
                       "Action": [
                         "dynamodb:GetItem", "dynamodb:Query", "dynamodb:Scan",
                         "dynamodb:BatchGetItem", "dynamodb:BatchWriteItem",
@@ -573,6 +590,22 @@
             }
         },
 
+        "GraphQLCatalogDataSource" : {
+          "Type" : "AWS::AppSync::DataSource",
+          "Properties" : {
+          "Type" : "AMAZON_DYNAMODB",
+          "Description" : "ShoppingCart Microservice Repository",
+          "ServiceRoleArn" : { "Fn::GetAtt": ["AppSyncExecutionRole", "Arn"] },
+          "ApiId" : { "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"] },
+          "Name" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "Catalog"]] },
+          "DynamoDBConfig" : {
+              "TableName" : { "Ref": "CatalogTable" },
+              "AwsRegion" : { "Ref" : "AWS::Region" },
+              "UseCallerCredentials" : false
+          }
+          }
+        },
+
         "GraphQLLambdaDataSource" : {
             "Type" : "AWS::AppSync::DataSource",
             "Properties" : {
@@ -595,13 +628,35 @@
             }
         },
 
+        "GraphQLGetCartProductFunction": {
+          "Type" : "AWS::AppSync::FunctionConfiguration",
+          "Properties" : {
+            "ApiId": { "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ] },
+            "Name" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "GetProductCartInfoFromDataSource"]] },
+            "DataSourceName": { "Fn::GetAtt": [ "GraphQLDataSource", "Name" ] },
+            "FunctionVersion" : "2018-05-29",
+            "RequestMappingTemplateS3Location": "./src/graphqlresolvers/functionGetCartProductInfo.resolver.velocity",
+            "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/functionGetCartProductInfo.response.velocity"
+          }
+        },
+
+       "GraphQLGetCatalogFunction": {
+          "Type" : "AWS::AppSync::FunctionConfiguration",
+          "Properties" : {
+            "ApiId": { "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ] },
+            "Name" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "GetCatalogInfoFromDataSource"]] },
+            "DataSourceName": { "Fn::GetAtt": [ "GraphQLCatalogDataSource", "Name" ] },
+            "FunctionVersion" : "2018-05-29",
+            "RequestMappingTemplateS3Location": "./src/graphqlresolvers/functionGetCatalogInfo.resolver.velocity",
+            "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/functionGetCatalogInfo.response.velocity"
+          }
+        },
+
         "GraphQLQueryCartResolver": {
             "Type": "AWS::AppSync::Resolver",
             "DependsOn": "GraphQLSchema",
             "Properties": {
-                "ApiId": {
-                    "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ]
-                },
+                "ApiId": { "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ] },
                 "TypeName": "Query",
                 "FieldName": "cart",
                 "DataSourceName": { "Fn::GetAtt": [ "GraphQLDataSource", "Name" ] },
@@ -611,21 +666,21 @@
         },
 
         "GraphQLQueryProductResolver": {
-            "Type": "AWS::AppSync::Resolver",
-            "DependsOn": "GraphQLSchema",
-            "Properties": {
-                "ApiId": {
-                    "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ]
-                },
-                "TypeName": "Query",
-                "FieldName": "product",
-                "DataSourceName": {
-                    "Fn::GetAtt": [ "GraphQLDataSource", "Name" ]
-                },
-                "RequestMappingTemplateS3Location": "./src/graphqlresolvers/getProduct.resolver.velocity",
-                "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/getProduct.response.velocity"
-            }
-        },
+          "Type": "AWS::AppSync::Resolver",
+          "DependsOn": "GraphQLSchema",
+          "Properties": {
+              "ApiId": { "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ] },
+              "TypeName": "Query",
+              "FieldName": "product",
+              "Kind": "PIPELINE",
+              "PipelineConfig" : {
+                "Functions" : [ { "Fn::GetAtt": [ "GraphQLGetCartProductFunction", "FunctionId" ] }, { "Fn::GetAtt": [ "GraphQLQueryCartResolver", "FunctionId" ] } ]
+              },
+              "RequestMappingTemplateS3Location": "./src/graphqlresolvers/getProductv2.resolver.velocity",
+              "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/getProductv2.response.velocity"
+          }
+      },
+
 
         "GraphQLaddToCartResolver": {
             "Type": "AWS::AppSync::Resolver",

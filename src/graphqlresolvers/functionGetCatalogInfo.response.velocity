@@ -1,0 +1,14 @@
+## Raise a GraphQL field error in case of a datasource invocation error
+#if($ctx.error)
+    $util.error($ctx.error.message, $ctx.error.type)
+#end
+
+$util.qr($ctx.stash.put("name", $ctx.result.name))
+$util.qr($ctx.stash.put("price", $ctx.result.price))
+
+## #set ($map = $ctx.prev.result.getMap() )
+## #foreach ($mapEntry in $map.entrySet())
+## $util.qr($result.put($mapEntry.key, $mapEntry.value))
+## #end
+
+$util.toJson($ctx.result)

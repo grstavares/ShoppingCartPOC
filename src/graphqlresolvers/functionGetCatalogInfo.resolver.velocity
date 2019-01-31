@@ -1,0 +1,8 @@
+#set($sku = $ctx.stash.sku)
+
+{
+    "operation": "GetItem",
+    "key": {
+        "sku":  $util.dynamodb.toDynamoDBJson($sku)
+    }
+}

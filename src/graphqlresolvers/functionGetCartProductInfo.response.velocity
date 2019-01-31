@@ -1,0 +1,7 @@
+## Raise a GraphQL field error in case of a datasource invocation error
+#if($ctx.error)
+    $util.error($ctx.error.message, $ctx.error.type)
+#end
+
+$util.qr($ctx.stash.put("quantity", $ctx.result.quantity))
+$util.toJson($ctx.result)

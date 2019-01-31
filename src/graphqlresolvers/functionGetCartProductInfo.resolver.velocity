@@ -1,0 +1,10 @@
+#set($cartId = $ctx.stash.cartId)
+#set($sku = $ctx.stash.sku)
+
+{
+    "operation": "GetItem",
+    "key": {
+        "cartId": $util.dynamodb.toDynamoDBJson($cartId),
+        "sku":  $util.dynamodb.toDynamoDBJson($sku),
+    }
+}
