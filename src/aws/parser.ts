@@ -109,7 +109,7 @@ export class AppSyncEventParser implements InputParser {
 
     public getUserId(): string { return this.event.cartId; }
 
-    public getPathParam(name: string): string { return this.event.sku; }
+    public getPathParam(name: string): string { return this.event[name]; }
 
     public getQueryParam(name: string): string { return this.event[name]; }
 

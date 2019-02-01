@@ -1,13 +1,24 @@
 ## #set($cartId = $ctx.identity.sub)
 #set($cartId = $ctx.request.headers.Authorization)
+#set($sku = $ctx.args.sku)
+#set($sessionId = $ctx.args.sessionId)
 
-{
-  "version" : "2017-02-28",
-  "operation": "Invoke",
-  "payload": {
-  	"AppSyncOperation": true,
-    "httpMethod": "DELETE",
-    "resource": "/cart",
-    "cartId": "$cartId"
-  }
-}
+#if($util.isNullOrEmpty($cartId) && $util.isNullOrEmpty($sessionId))
+
+    $util.error("400: Bad Request")
+
+  #else
+
+    {
+      "version" : "2017-02-28",
+      "operation": "Invoke",
+      "payload": {
+        "AppSyncOperation": true,
+        "httpMethod": "DELETE",
+        "resource": "/cart",
+        "sessionId": "$sessionId",
+        "cartId": "$cartId"
+      }
+    }
+
+#end

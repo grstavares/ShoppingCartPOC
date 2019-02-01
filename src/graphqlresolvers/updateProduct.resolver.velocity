@@ -1,16 +1,26 @@
 ## #set($cartId = $ctx.identity.sub)
 #set($cartId = $ctx.request.headers.Authorization)
-#set($sku = $ctx.stash.sku)
+#set($sku = $ctx.args.sku)
+#set($sessionId = $ctx.args.sessionId)
 
-{
-  "version" : "2017-02-28",
-  "operation": "Invoke",
-  "payload": {
-  	"AppSyncOperation": true,
-    "httpMethod": "PUT",
-    "resource": "/cart/{productSku}",
-    "cartId": "$cartId",
-    "sku": "$sku",
-    "quantity": $context.args.quantity
-  }
-}
+#if($util.isNullOrEmpty($cartId) && $util.isNullOrEmpty($sessionId))
+
+    $util.error("400: Bad Request")
+
+  #else
+
+    {
+    "version" : "2017-02-28",
+    "operation": "Invoke",
+    "payload": {
+        "AppSyncOperation": true,
+        "httpMethod": "PUT",
+        "resource": "/cart/{productSku}",
+        "sessionId": "$sessionId",
+        "cartId": "$cartId",
+        "sku": "$sku",
+        "quantity": $context.args.quantity
+      }
+    }
+
+#end
