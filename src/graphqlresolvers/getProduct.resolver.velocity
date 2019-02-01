@@ -1,8 +1,12 @@
+## #set($cartId = $ctx.identity.sub)
+#set($cartId = $ctx.request.headers.Authorization)
+#set($sku = $ctx.stash.sku)
+
 {
     "version": "2017-02-28",
     "operation": "GetItem",
     "key": {
-        "cartId": $util.dynamodb.toDynamoDBJson($ctx.args.cartId),
-        "sku": $util.dynamodb.toDynamoDBJson($ctx.args.sku),
+        "cartId": $util.dynamodb.toDynamoDBJson($cartId),
+        "sku": $util.dynamodb.toDynamoDBJson($sku),
     }
 }

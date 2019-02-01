@@ -1,10 +1,13 @@
+## #set($cartId = $ctx.identity.sub)
+#set($cartId = $ctx.request.headers.Authorization)
+
 {
     "version" : "2017-02-28",
     "operation" : "Query",
     "query" : {
         "expression": "cartId = :id",
         "expressionValues" : {
-            ":id" : $util.dynamodb.toDynamoDBJson($ctx.args.cartId)
+            ":id" : $util.dynamodb.toDynamoDBJson($cartId)
         }
     }
 }

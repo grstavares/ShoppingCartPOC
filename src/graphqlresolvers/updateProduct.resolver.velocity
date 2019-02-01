@@ -1,3 +1,7 @@
+## #set($cartId = $ctx.identity.sub)
+#set($cartId = $ctx.request.headers.Authorization)
+#set($sku = $ctx.stash.sku)
+
 {
   "version" : "2017-02-28",
   "operation": "Invoke",
@@ -5,10 +9,8 @@
   	"AppSyncOperation": true,
     "httpMethod": "PUT",
     "resource": "/cart/{productSku}",
-    "cartId": "$context.args.cartId",
-    "sku": "$context.args.sku",
-    "name": "$context.args.name",
-    "quantity": $context.args.quantity,
-    "price": $context.args.price
+    "cartId": "$cartId",
+    "sku": "$sku",
+    "quantity": $context.args.quantity
   }
 }

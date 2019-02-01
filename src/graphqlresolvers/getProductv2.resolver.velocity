@@ -1,3 +1,4 @@
-$util.qr($ctx.stash.put("cartId", $ctx.args.cartId))
+## $util.qr($ctx.stash.put("cartId", $ctx.identity.sub))
+$util.qr($ctx.stash.put("cartId", $ctx.request.headers.Authorization))
 $util.qr($ctx.stash.put("sku", $ctx.args.sku))
 $util.toJson($ctx)
