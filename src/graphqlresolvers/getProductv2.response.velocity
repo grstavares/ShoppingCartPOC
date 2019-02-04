@@ -1,1 +1,10 @@
+## THIS FILE IS TO BE CONSULTED ONLY.
+## ANY MODIFICATION MUST BE MADE INSIDE
+## solution-stack.json
+
+
+## PLEASE, READ THE LINES ABOVE
+
+
+
 $util.toJson($ctx.stash)

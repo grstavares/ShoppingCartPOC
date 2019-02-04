@@ -1,3 +1,12 @@
+## THIS FILE IS TO BE CONSULTED ONLY.
+## ANY MODIFICATION MUST BE MADE INSIDE
+## solution-stack.json
+
+
+## PLEASE, READ THE LINES ABOVE
+
+
+
 ## $util.qr($ctx.stash.put("cartId", $ctx.identity.sub))
 $util.qr($ctx.stash.put("cartId", $ctx.request.headers.Authorization))
 $util.qr($ctx.stash.put("sku", $ctx.args.sku))

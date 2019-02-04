@@ -121,7 +121,7 @@ For the GraphQL, you can send, **at this moment**, the folowing queries:
 
 ```graphql
 {
-  "query": "mutation AddProductToCart {addToCart(sessionId: \"{sessionId}\", sessionId: \"{sessionId}\", sku: \"{sku}\", quantity: {quantity}) }",
+  "query": "mutation AddProductToCart {addToCart(sessionId: \"{sessionId}\", sku: \"{sku}\", quantity: {quantity}) }",
   "operationName": "AddProductToCart"
 }
 ```

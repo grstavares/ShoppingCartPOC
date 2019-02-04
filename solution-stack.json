@@ -635,8 +635,24 @@
             "Name" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "GetProductCartInfoFromDataSource"]] },
             "DataSourceName": { "Fn::GetAtt": [ "GraphQLDataSource", "Name" ] },
             "FunctionVersion" : "2018-05-29",
-            "RequestMappingTemplateS3Location": "./src/graphqlresolvers/functionGetCartProductInfo.resolver.velocity",
-            "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/functionGetCartProductInfo.response.velocity"
+            "RequestMappingTemplate": { "Fn::Join" : [ "", [
+              "#set($cartId = $ctx.stash.cartId)\r\n",
+              "#set($sku = $ctx.stash.sku)\r\n",
+              "{\r\n",
+              "    \"operation\": \"GetItem\",\r\n",
+              "    \"key\": {\r\n",
+              "        \"cartId\": $util.dynamodb.toDynamoDBJson($cartId),\r\n",
+              "        \"sku\":  $util.dynamodb.toDynamoDBJson($sku),\r\n",
+              "    }\r\n",
+              "}"
+            ] ] },
+          "ResponseMappingTemplate": { "Fn::Join" : [ "", [
+            "#if($ctx.error)\r\n",
+            "    $util.error($ctx.error.message, $ctx.error.type)\r\n",
+            "#end\r\n",
+            "$util.qr($ctx.stash.put(\"quantity\", $ctx.result.quantity))\r\n",
+            "$util.toJson($ctx.result)"
+          ] ] }
           }
         },
 
@@ -648,13 +664,11 @@
             "DataSourceName": { "Fn::GetAtt": [ "GraphQLCatalogDataSource", "Name" ] },
             "FunctionVersion" : "2018-05-29",
             "RequestMappingTemplate": { "Fn::Join" : [ "", [
-                "#set($cartId = $ctx.stash.cartId)\r\n",
                 "#set($sku = $ctx.stash.sku)\r\n",
                 "{\r\n",
                 "    \"operation\": \"GetItem\",\r\n",
                 "    \"key\": {\r\n",
-                "        \"cartId\": $util.dynamodb.toDynamoDBJson($cartId),\r\n",
-                "        \"sku\":  $util.dynamodb.toDynamoDBJson($sku),\r\n",
+                "        \"sku\":  $util.dynamodb.toDynamoDBJson($sku)\r\n",
                 "    }\r\n",
                 "}"
               ] ] },
@@ -662,7 +676,8 @@
               "#if($ctx.error)\r\n",
               "    $util.error($ctx.error.message, $ctx.error.type)\r\n",
               "#end\r\n",
-              "$util.qr($ctx.stash.put(\"quantity\", $ctx.result.quantity))\r\n",
+              "$util.qr($ctx.stash.put(\"name\", $ctx.result.name))\r\n",
+              "$util.qr($ctx.stash.put(\"price\", $ctx.result.price))\r\n",
               "$util.toJson($ctx.result)"
             ] ] }
           }
@@ -683,17 +698,22 @@
 
         "GraphQLQueryProductResolver": {
           "Type": "AWS::AppSync::Resolver",
-          "DependsOn": "GraphQLSchema",
+          "DependsOn": ["GraphQLSchema", "GraphQLGetCartProductFunction" , "GraphQLGetCatalogFunction"],
           "Properties": {
               "ApiId": { "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ] },
               "TypeName": "Query",
               "FieldName": "product",
               "Kind": "PIPELINE",
               "PipelineConfig" : {
-                "Functions" : [ { "Fn::GetAtt": [ "GraphQLGetCartProductFunction", "FunctionId" ] }, { "Fn::GetAtt": [ "GraphQLQueryCartResolver", "FunctionId" ] } ]
+                "Functions" : [ { "Fn::GetAtt": [ "GraphQLGetCartProductFunction", "FunctionId" ] }, { "Fn::GetAtt": [ "GraphQLGetCatalogFunction", "FunctionId" ] } ]
               },
-              "RequestMappingTemplateS3Location": "./src/graphqlresolvers/getProductv2.resolver.velocity",
-              "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/getProductv2.response.velocity"
+              "RequestMappingTemplate": { "Fn::Join" : [ "", [
+                "$util.qr($ctx.stash.put(\"cartId\", $ctx.request.headers.Authorization))\r\n",
+                "$util.qr($ctx.stash.put(\"sku\", $ctx.args.sku))\r\n",
+                "$util.qr($ctx.stash.put(\"productSku\", $ctx.args.sku))\r\n",
+                "$util.toJson($ctx)"
+              ] ] },
+              "ResponseMappingTemplate": "$util.toJson($ctx.stash)"
           }
         },
 

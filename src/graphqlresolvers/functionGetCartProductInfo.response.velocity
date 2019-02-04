@@ -1,4 +1,12 @@
-## Raise a GraphQL field error in case of a datasource invocation error
+## THIS FILE IS TO BE CONSULTED ONLY.
+## ANY MODIFICATION MUST BE MADE INSIDE
+## solution-stack.json
+
+
+## PLEASE, READ THE LINES ABOVE
+
+
+
 #if($ctx.error)
     $util.error($ctx.error.message, $ctx.error.type)
 #end

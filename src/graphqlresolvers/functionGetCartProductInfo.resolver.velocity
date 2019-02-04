@@ -1,10 +1,16 @@
-#set($cartId = $ctx.stash.cartId)
-#set($sku = $ctx.stash.sku)
+## THIS FILE IS TO BE CONSULTED ONLY.
+## ANY MODIFICATION MUST BE MADE INSIDE
+## solution-stack.json
+
+
+## PLEASE, READ THE LINES ABOVE
+
+
 
 {
     "operation": "GetItem",
     "key": {
-        "cartId": $util.dynamodb.toDynamoDBJson($cartId),
-        "sku":  $util.dynamodb.toDynamoDBJson($sku),
+        "cartId": $util.dynamodb.toDynamoDBJson($ctx.stash.cartId),
+        "sku":  $util.dynamodb.toDynamoDBJson($ctx.stash.sku),
     }
 }

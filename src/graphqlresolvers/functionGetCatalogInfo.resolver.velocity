@@ -1,8 +1,15 @@
-#set($sku = $ctx.stash.sku)
+## THIS FILE IS TO BE CONSULTED ONLY.
+## ANY MODIFICATION MUST BE MADE INSIDE
+## solution-stack.json
+
+
+## PLEASE, READ THE LINES ABOVE
+
+
 
 {
     "operation": "GetItem",
     "key": {
-        "sku":  $util.dynamodb.toDynamoDBJson($sku)
+        "sku": $util.dynamodb.toDynamoDBJson($ctx.stash.sku)
     }
 }

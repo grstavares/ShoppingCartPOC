@@ -535,8 +535,26 @@ Resources:
         - ''
         - - Ref: AWS::StackName
           - GetProductCartInfoFromDataSource
-      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/functionGetCartProductInfo.resolver.velocity
-      ResponseMappingTemplateS3Location: s3://grstavares-code-us-east-1/functionGetCartProductInfo.response.velocity
+      RequestMappingTemplate:
+        Fn::Join:
+        - ''
+        - - "#set($cartId = $ctx.stash.cartId)\r\n"
+          - "#set($sku = $ctx.stash.sku)\r\n"
+          - "{\r\n"
+          - "    \"operation\": \"GetItem\",\r\n"
+          - "    \"key\": {\r\n"
+          - "        \"cartId\": $util.dynamodb.toDynamoDBJson($cartId),\r\n"
+          - "        \"sku\":  $util.dynamodb.toDynamoDBJson($sku),\r\n"
+          - "    }\r\n"
+          - '}'
+      ResponseMappingTemplate:
+        Fn::Join:
+        - ''
+        - - "#if($ctx.error)\r\n"
+          - "    $util.error($ctx.error.message, $ctx.error.type)\r\n"
+          - "#end\r\n"
+          - "$util.qr($ctx.stash.put(\"quantity\", $ctx.result.quantity))\r\n"
+          - $util.toJson($ctx.result)
     Type: AWS::AppSync::FunctionConfiguration
   GraphQLGetCatalogFunction:
     Properties:
@@ -557,13 +575,11 @@ Resources:
       RequestMappingTemplate:
         Fn::Join:
         - ''
-        - - "#set($cartId = $ctx.stash.cartId)\r\n"
-          - "#set($sku = $ctx.stash.sku)\r\n"
+        - - "#set($sku = $ctx.stash.sku)\r\n"
           - "{\r\n"
           - "    \"operation\": \"GetItem\",\r\n"
           - "    \"key\": {\r\n"
-          - "        \"cartId\": $util.dynamodb.toDynamoDBJson($cartId),\r\n"
-          - "        \"sku\":  $util.dynamodb.toDynamoDBJson($sku),\r\n"
+          - "        \"sku\":  $util.dynamodb.toDynamoDBJson($sku)\r\n"
           - "    }\r\n"
           - '}'
       ResponseMappingTemplate:
@@ -572,7 +588,8 @@ Resources:
         - - "#if($ctx.error)\r\n"
           - "    $util.error($ctx.error.message, $ctx.error.type)\r\n"
           - "#end\r\n"
-          - "$util.qr($ctx.stash.put(\"quantity\", $ctx.result.quantity))\r\n"
+          - "$util.qr($ctx.stash.put(\"name\", $ctx.result.name))\r\n"
+          - "$util.qr($ctx.stash.put(\"price\", $ctx.result.price))\r\n"
           - $util.toJson($ctx.result)
     Type: AWS::AppSync::FunctionConfiguration
   GraphQLLambdaDataSource:
@@ -614,13 +631,44 @@ Resources:
       ResponseMappingTemplateS3Location: s3://grstavares-code-us-east-1/b84ede9ff91570aea07957f69b25646c
       TypeName: Query
     Type: AWS::AppSync::Resolver
+  GraphQLQueryProductResolver:
+    DependsOn:
+    - GraphQLSchema
+    - GraphQLGetCartProductFunction
+    - GraphQLGetCatalogFunction
+    Properties:
+      ApiId:
+        Fn::GetAtt:
+        - GraphQLEndpoint
+        - ApiId
+      FieldName: product
+      Kind: PIPELINE
+      PipelineConfig:
+        Functions:
+        - Fn::GetAtt:
+          - GraphQLGetCartProductFunction
+          - FunctionId
+        - Fn::GetAtt:
+          - GraphQLGetCatalogFunction
+          - FunctionId
+      RequestMappingTemplate:
+        Fn::Join:
+        - ''
+        - - "$util.qr($ctx.stash.put(\"cartId\", $ctx.request.headers.Authorization))\r\
+            \n"
+          - "$util.qr($ctx.stash.put(\"sku\", $ctx.args.sku))\r\n"
+          - "$util.qr($ctx.stash.put(\"productSku\", $ctx.args.sku))\r\n"
+          - $util.toJson($ctx)
+      ResponseMappingTemplate: $util.toJson($ctx.stash)
+      TypeName: Query
+    Type: AWS::AppSync::Resolver
   GraphQLSchema:
     Properties:
       ApiId:
         Fn::GetAtt:
         - GraphQLEndpoint
         - ApiId
-      DefinitionS3Location: s3://grstavares-code-us-east-1/254d6846153e3c040b00bce1ae994361
+      DefinitionS3Location: s3://grstavares-code-us-east-1/6509bb54dfd0fdbd718aa3a5922f5c17
     Type: AWS::AppSync::GraphQLSchema
   GraphQLaddToCartResolver:
     DependsOn: GraphQLSchema
@@ -737,7 +785,7 @@ Resources:
     Properties:
       Code:
         S3Bucket: grstavares-code-us-east-1
-        S3Key: 3f1fa93f12834068fa1c2a06fda78f41
+        S3Key: 2982df0b64508ffe667b2c6acfa9fd20
       Description:
         Fn::Join:
         - ''
