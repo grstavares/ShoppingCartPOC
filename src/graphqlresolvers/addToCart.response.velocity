@@ -1,1 +1,5 @@
-$context.result.body
+#if( $context.result.statusCode == 201 )
+    true
+#else
+    $utils.error($context.result.body, $context.result.statusCode, $context.result.body)
+#end

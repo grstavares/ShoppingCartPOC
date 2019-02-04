@@ -1,4 +1,4 @@
-import { InfrastructureMetric } from './types';
+import { InfrastructureMetric, ServiceError } from './types';
 
 export enum BackendMetrics {
     DependencyNotConfigured = 'DependencyNotConfigured',
@@ -22,6 +22,7 @@ export interface MetricBus {
 
 export interface Logger {
     log(message: string): void;
+    logError(message: string): void;
 }
 
 export interface InputParser {
@@ -38,4 +39,5 @@ export interface DependencyInjector {
     getMessageBus(): Promise<MessageBus>;
     getMetricBus(): Promise<MetricBus>;
     getInputParser(event: any): InputParser;
+    getLogger(): Logger;
 }

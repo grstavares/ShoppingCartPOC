@@ -554,8 +554,26 @@ Resources:
         - ''
         - - Ref: AWS::StackName
           - GetCatalogInfoFromDataSource
-      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/functionGetCatalogInfo.resolver.velocity
-      ResponseMappingTemplateS3Location: s3://grstavares-code-us-east-1/functionGetCatalogInfo.response.velocity
+      RequestMappingTemplate:
+        Fn::Join:
+        - ''
+        - - "#set($cartId = $ctx.stash.cartId)\r\n"
+          - "#set($sku = $ctx.stash.sku)\r\n"
+          - "{\r\n"
+          - "    \"operation\": \"GetItem\",\r\n"
+          - "    \"key\": {\r\n"
+          - "        \"cartId\": $util.dynamodb.toDynamoDBJson($cartId),\r\n"
+          - "        \"sku\":  $util.dynamodb.toDynamoDBJson($sku),\r\n"
+          - "    }\r\n"
+          - '}'
+      ResponseMappingTemplate:
+        Fn::Join:
+        - ''
+        - - "#if($ctx.error)\r\n"
+          - "    $util.error($ctx.error.message, $ctx.error.type)\r\n"
+          - "#end\r\n"
+          - "$util.qr($ctx.stash.put(\"quantity\", $ctx.result.quantity))\r\n"
+          - $util.toJson($ctx.result)
     Type: AWS::AppSync::FunctionConfiguration
   GraphQLLambdaDataSource:
     Properties:
@@ -592,7 +610,7 @@ Resources:
         - GraphQLDataSource
         - Name
       FieldName: cart
-      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/99409c569e8aea0ff549b37a717b1ae0
+      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/31b0922a5cb4df8bd61c021bc662f634
       ResponseMappingTemplateS3Location: s3://grstavares-code-us-east-1/b84ede9ff91570aea07957f69b25646c
       TypeName: Query
     Type: AWS::AppSync::Resolver
@@ -602,7 +620,7 @@ Resources:
         Fn::GetAtt:
         - GraphQLEndpoint
         - ApiId
-      DefinitionS3Location: s3://grstavares-code-us-east-1/c1a18c0add53f0c13b1f353a4d003893
+      DefinitionS3Location: s3://grstavares-code-us-east-1/254d6846153e3c040b00bce1ae994361
     Type: AWS::AppSync::GraphQLSchema
   GraphQLaddToCartResolver:
     DependsOn: GraphQLSchema
@@ -616,8 +634,8 @@ Resources:
         - GraphQLLambdaDataSource
         - Name
       FieldName: addToCart
-      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/83f660ebf18e534211e612659a153314
-      ResponseMappingTemplateS3Location: s3://grstavares-code-us-east-1/cbb70c6e07778ee20e3415b3170f156a
+      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/aee5e23cc1c874508470b76a59c7352b
+      ResponseMappingTemplateS3Location: s3://grstavares-code-us-east-1/802d28666904bb222138ae08b619513e
       TypeName: Mutation
     Type: AWS::AppSync::Resolver
   GraphQLclearCartResolver:
@@ -632,7 +650,7 @@ Resources:
         - GraphQLLambdaDataSource
         - Name
       FieldName: clearCart
-      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/d1d41f29198f82ea7b8871a8f18dbe0b
+      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/8c09120698cbbafbfacaaf166ce2db6b
       ResponseMappingTemplateS3Location: s3://grstavares-code-us-east-1/8475800f476cb6068261e06946105916
       TypeName: Mutation
     Type: AWS::AppSync::Resolver
@@ -648,7 +666,7 @@ Resources:
         - GraphQLLambdaDataSource
         - Name
       FieldName: convertCart
-      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/1f001ea36e679a9784a6e037fc3914ca
+      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/496eb743346ad587bc135ed553bdbff8
       ResponseMappingTemplateS3Location: s3://grstavares-code-us-east-1/8475800f476cb6068261e06946105916
       TypeName: Mutation
     Type: AWS::AppSync::Resolver
@@ -664,7 +682,7 @@ Resources:
         - GraphQLLambdaDataSource
         - Name
       FieldName: removeProduct
-      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/528a1a8a219577ae4a1e14a6f445c596
+      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/342f0bbf15901b9558e9b0b9f7882de7
       ResponseMappingTemplateS3Location: s3://grstavares-code-us-east-1/8475800f476cb6068261e06946105916
       TypeName: Mutation
     Type: AWS::AppSync::Resolver
@@ -680,8 +698,8 @@ Resources:
         - GraphQLLambdaDataSource
         - Name
       FieldName: updateProduct
-      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/5e8682bad9cb7350dff6426766fb2e3a
-      ResponseMappingTemplateS3Location: s3://grstavares-code-us-east-1/cbb70c6e07778ee20e3415b3170f156a
+      RequestMappingTemplateS3Location: s3://grstavares-code-us-east-1/433196239fe55529420b96ecf50f687e
+      ResponseMappingTemplateS3Location: s3://grstavares-code-us-east-1/8475800f476cb6068261e06946105916
       TypeName: Mutation
     Type: AWS::AppSync::Resolver
   IdentityPool:
@@ -719,7 +737,7 @@ Resources:
     Properties:
       Code:
         S3Bucket: grstavares-code-us-east-1
-        S3Key: 70bcf77140095db7c95cdf25b031bd91
+        S3Key: 3f1fa93f12834068fa1c2a06fda78f41
       Description:
         Fn::Join:
         - ''

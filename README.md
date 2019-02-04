@@ -44,6 +44,10 @@ The service will provide REST and GrapQL endpoints to perform his functionalitie
 
 - **Service Tracing**: Componente responsible to log and trace service operations. This componenet will concentrate all the operations performed by each of the other componentes of the service. This implementation will use Cloudwatch Logs.
 
+### Dependencies
+
+The service will connect to another service to request information about Product Description and Product Price. At this moment this dependency will be mocked by a DynamoDB table, but will be refactored later to use a proxy/adaptor.
+
 ### External Components
 
 #### Authentication Provider
@@ -99,7 +103,7 @@ For the GraphQL, you can send, **at this moment**, the folowing queries:
 
 ```graphql
 {
-  "query": "query GetCart {cart(cartId: \"{cartId}\") { sku name price quantity } }",
+  "query": "query GetCart {cart(sessionId: \"{sessionId}\") { sku name price quantity } }",
   "operationName": "GetCart"
 }
 ```
@@ -108,15 +112,60 @@ For the GraphQL, you can send, **at this moment**, the folowing queries:
 
 ```graphql
 {
-  "query": "query GetProduct {product(cartId: \"{cartId}\", sku: \"{sku}\") { sku name price quantity } }",
+  "query": "query GetProduct {product(sessionId: \"{sessionId}\", sku: \"{sku}\") { sku name price quantity } }",
   "operationName": "GetProduct"
+}
+```
+
+- AddProduct:
+
+```graphql
+{
+  "query": "mutation AddProductToCart {addToCart(sessionId: \"{sessionId}\", sessionId: \"{sessionId}\", sku: \"{sku}\", quantity: {quantity}) }",
+  "operationName": "AddProductToCart"
+}
+```
+
+- UpdateProduct:
+
+```graphql
+{
+  "query": "mutation UpdateProduct {updateProduct(sessionId: \"{sessionId}\", sku: \"{sku}\", quantity: {quantity}) }",
+  "operationName": "UpdateProduct"
+}
+```
+
+- RemoveProduct:
+
+```graphql
+{
+  "query": "mutation RemoveProduct {removeProduct(sessionId: \"{sessionId}\", sku: \"{sku}\") }",
+  "operationName": "RemoveProduct"
+}
+```
+
+- ClearCart:
+
+```graphql
+{
+  "query": "mutation ClearCart {clearCart(sessionId: \"{sessionId}\") }",
+  "operationName": "ClearCart"
+}
+```
+
+- ConvertCart:
+
+```graphql
+{
+  "query": "mutation ConvertCart {convertCart(sessionId: \"{sessionId}\") }",
+  "operationName": "ConvertCart"
 }
 ```
 
 ### TODO
 
 1. Implement Authentication Provider using AWS Cognito.
-2. Implement GraphQL mutations;
-3. Implement GraphQL subscriptions;
-4. Restrict Cart Product Update to permity only changes on quantity property;
-5. Create and Integrate Catalog Microservice;
+2. ~~Implement GraphQL mutations~~;
+3. ~~Implement GraphQL subscriptions~~;
+4. ~~Restrict Cart Product Update to permity only changes on quantity property;~~
+5. ~~Create and Integrate Catalog Microservice;~~

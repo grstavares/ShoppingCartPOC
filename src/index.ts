@@ -12,10 +12,11 @@ export function handler(event: APIGatewayProxyEvent, context: Context, callback:
 
     const resolver = (injector === null) ? new AWSDependencyInjector(context.awsRequestId) : injector;
     const eventParser = resolver.getInputParser(event);
+    const logger = resolver.getLogger();
     const operationBuilder = new OperationBuilder(eventParser, context.awsRequestId);
 
     operationBuilder.executeOperation(resolver)
-    .then((response) => callback(null, response))
-    .catch((errorResponse) => callback(null, errorResponse));
+    .then((response) => { logger.log(`Response Returned -> StatusCode ${response.statusCode}`); callback(null, response); })
+    .catch((errorResponse) => { logger.logError(JSON.stringify(errorResponse)); callback(null, errorResponse); });
 
 }

@@ -5,25 +5,25 @@ schema {
 }
 
 type Query {
-    cart(): [Product]
-    product(sku: String!): Product
+    cart(sessionId: String): [Product]
+    product(sessionId: String, sku: String!): Product
 }
 
 type Mutation {
-    addToCart(sessionId: String, sku: String!, quantity: Int!): Product
-    updateProduct(sessionId: String, sku: String!, quantity: Int!): Product
+    addToCart(sessionId: String, sku: String!, quantity: Int!): Boolean
+    updateProduct(sessionId: String, sku: String!, quantity: Int!): Boolean
     removeProduct(sessionId: String, sku: String!): Boolean
     clearCart(sessionId: String): Boolean
     convertCart(sessionId: String!): Boolean
 }
 
 type Subscription {
-  cartUpdated(): [Product]
+  cartUpdated: [Product]
 }
 
 type Product {
   sku: String!
-  name: String!
   quantity: Int!
-  price: Float!
+  name: String
+  price: Float
 }

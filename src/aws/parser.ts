@@ -89,11 +89,12 @@ export class APIGatewayEventParser implements InputParser {
 
     public getPayload(): Object {
 
+      try {
         const value = this.event.body;
         const parsed = JSON.parse(value);
-
         /* tslint:disable: no-unsafe-any */
         return parsed;
+      } catch (e) { return null; }
 
     }
 
@@ -115,7 +116,7 @@ export class AppSyncEventParser implements InputParser {
 
     public getResource(): string { return this.event.resource; }
 
-    public getPayload(): Object { return { sku: this.event.sku, name: this.event.name, quantity: this.event.quantity, price: this.event.price }; }
+    public getPayload(): Object { return { sku: this.event.sku, quantity: this.event.quantity }; }
 
 }
 

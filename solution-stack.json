@@ -171,7 +171,7 @@
                   {"Key" : "Developer", "Value" : "GustavoTavares"},
                   {"Key" : "Version", "Value" : "POC"}]
           }
-      },
+        },
 
         "MainFunction": {
             "Type": "AWS::Lambda::Function",
@@ -647,8 +647,24 @@
             "Name" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "GetCatalogInfoFromDataSource"]] },
             "DataSourceName": { "Fn::GetAtt": [ "GraphQLCatalogDataSource", "Name" ] },
             "FunctionVersion" : "2018-05-29",
-            "RequestMappingTemplateS3Location": "./src/graphqlresolvers/functionGetCatalogInfo.resolver.velocity",
-            "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/functionGetCatalogInfo.response.velocity"
+            "RequestMappingTemplate": { "Fn::Join" : [ "", [
+                "#set($cartId = $ctx.stash.cartId)\r\n",
+                "#set($sku = $ctx.stash.sku)\r\n",
+                "{\r\n",
+                "    \"operation\": \"GetItem\",\r\n",
+                "    \"key\": {\r\n",
+                "        \"cartId\": $util.dynamodb.toDynamoDBJson($cartId),\r\n",
+                "        \"sku\":  $util.dynamodb.toDynamoDBJson($sku),\r\n",
+                "    }\r\n",
+                "}"
+              ] ] },
+            "ResponseMappingTemplate": { "Fn::Join" : [ "", [
+              "#if($ctx.error)\r\n",
+              "    $util.error($ctx.error.message, $ctx.error.type)\r\n",
+              "#end\r\n",
+              "$util.qr($ctx.stash.put(\"quantity\", $ctx.result.quantity))\r\n",
+              "$util.toJson($ctx.result)"
+            ] ] }
           }
         },
 
@@ -679,8 +695,7 @@
               "RequestMappingTemplateS3Location": "./src/graphqlresolvers/getProductv2.resolver.velocity",
               "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/getProductv2.response.velocity"
           }
-      },
-
+        },
 
         "GraphQLaddToCartResolver": {
             "Type": "AWS::AppSync::Resolver",

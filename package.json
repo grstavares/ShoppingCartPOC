@@ -4,7 +4,7 @@
   "description": "POC for Shopping Cart using Microservices Architecture",
   "main": "src/index.js",
   "scripts": {
-    "test": "LAMBDA_TESTER_NODE_VERSION_CHECK=false mocha -r ts-node/register tests/**/*.spec.ts",
+    "test": "clear && LAMBDA_TESTER_NODE_VERSION_CHECK=false mocha -r ts-node/register tests/**/*.spec.ts",
     "build": "npm run test && webpack --config webpack.config.js"
   },
   "author": "Gustavo Tavares",

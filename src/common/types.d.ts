@@ -1,5 +1,3 @@
-import {} from './backend';
-
 export interface BusinessEvent {
     action: string;
     body: Object;

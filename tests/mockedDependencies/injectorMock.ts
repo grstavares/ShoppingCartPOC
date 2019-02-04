@@ -1,3 +1,4 @@
+import { Logger } from './../../src/common/backend';
 /* tslint:disable: no-implicit-dependencies */
 import { Context } from 'aws-lambda';
 import { DependencyInjector, MessageBus, MetricBus, NoSQLTable, InputParser } from '../../src/common/backend';
@@ -7,6 +8,7 @@ import { DynamoDBTable } from '../../src/aws/dynamodb';
 import { DynamoDB } from 'aws-sdk';
 import { InfrastructureMetric } from '../../src/common/types';
 import { AWSParser } from '../../src/aws';
+import { ConsoleLogger } from '../../src/aws/consoleLogger';
 
 export class DependencyInjectorMock implements DependencyInjector {
 
@@ -21,6 +23,13 @@ export class DependencyInjectorMock implements DependencyInjector {
     public async getMessageBus(): Promise<MessageBus> { return new MockedMessageBus(); }
 
     public async getMetricBus(): Promise<MetricBus> { return new MockedMetricBus(); }
+
+    public getLogger(): Logger {
+
+      const isInsideAWS = (process.env.LAMBDA_TASK_ROOT === null || process.env.LAMBDA_TASK_ROOT == undefined);
+      return new ConsoleLogger(!isInsideAWS);
+
+    }
 
     public async injectItemOnTable(keys: { [key: string]: any }, object: Object): Promise<boolean> {
 

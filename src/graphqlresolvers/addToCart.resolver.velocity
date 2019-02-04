@@ -19,6 +19,7 @@
         "sessionId": "$sessionId",
         "cartId": "$cartId",
         "sku": "$sku",
+        "productSku": "$sku",
         "quantity": $context.args.quantity
       }
     }

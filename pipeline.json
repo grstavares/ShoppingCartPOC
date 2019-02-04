@@ -1,0 +1,29 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Shopping Cart POC using microservices architecture",
+
+  "Resources": {
+
+      "GraphQLQueryProductResolver": {
+        "Type": "AWS::AppSync::Resolver",
+        "Properties": {
+            "ApiId": "6qncwgafnzh5zpsjxrxah2yd34",
+            "TypeName": "Query",
+            "FieldName": "product",
+            "Kind": "PIPELINE",
+            "PipelineConfig" : {
+              "Functions" : [ "fuld62z7fjf2xdjouoo26p5hjy", "dqkoz2lpd5hblcmand2ychx2ku" ]
+            },
+            "RequestMappingTemplate": { "Fn::Join" : [ "", [
+              "$util.qr($ctx.stash.put(\"cartId\", $ctx.request.headers.Authorization))\r\n",
+              "$util.qr($ctx.stash.put(\"sku\", $ctx.args.sku))\r\n",
+              "$util.qr($ctx.stash.put(\"productSku\", $ctx.args.sku))\r\n",
+              "$util.toJson($ctx)"
+            ] ] },
+            "ResponseMappingTemplate": "$util.toJson($ctx.stash)"
+        }
+      }
+
+  }
+
+}

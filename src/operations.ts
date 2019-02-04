@@ -24,6 +24,7 @@ export class OperationBuilder {
     private readonly tableResourceId = 'NoSQLTable';
     private readonly topicResourceId = 'MessageTopic';
     private readonly skuPropertyKey = 'sku';
+    private readonly quantityPropertyKey = 'quantity';
 
     constructor(private readonly eventParser: InputParser, private readonly traceId: string) { }
 
@@ -70,10 +71,10 @@ export class OperationBuilder {
     /* tslint:disable no-unsafe-any */
     public isValidEventBody(object: any): object is CartProduct {
 
-        if (object.sku == undefined) { return false; }
-        if (object.name == undefined) { return false; }
-        if (object.price == undefined) { return false; }
-        if (object.quantity == undefined) { return false; }
+        if (object.sku == undefined || object.sku === null) { return false; }
+        // if (object.name == undefined) { return false; }
+        // if (object.price == undefined) { return false; }
+        if (object.quantity == undefined || object.quantity === null) { return false; }
         return true;
 
     }
@@ -235,10 +236,15 @@ export class OperationBuilder {
 
     private async performAddProduct(resolver: DependencyInjector): Promise<ServiceResponse> {
 
-        const skuPropertyName = 'sku';
         const payload = this.eventParser.getPayload();
+        if (payload === null) {
+          const response = ResponseBuilder.badRequest('', this.traceId);
+          return Promise.reject(response);
+        }
+
         const cartId = this.getCartId();
-        const productSku: string = payload[skuPropertyName];
+        const productSku: string = payload[this.skuPropertyKey];
+        const productQty: number = payload[this.quantityPropertyKey];
 
         if (cartId === null) {
             const response = ResponseBuilder.unauthorized('', this.traceId);
@@ -251,7 +257,8 @@ export class OperationBuilder {
         }
 
         const keys = { cartId: cartId, sku: productSku };
-        const object = this.eventParser.getPayload();
+        // const object = this.eventParser.getPayload();
+        const object = { quantity: productQty };
 
         /* tslint:disable: prefer-object-spread */
         const keyedObject = Object.assign(keys, object);
@@ -280,7 +287,7 @@ export class OperationBuilder {
     private async performUpdateProduct(resolver: DependencyInjector): Promise<ServiceResponse> {
 
         const cartId = this.getCartId();
-        const productSku = this.eventParser.getPathParam('productSku');
+        const productSku = this.eventParser.getPathParam('productSku');     // This is referent to URL Path Parameter, not Object Property.
 
         if (cartId === null) {
             const response = ResponseBuilder.unauthorized('', this.traceId);
@@ -292,8 +299,15 @@ export class OperationBuilder {
             return Promise.reject(response);
         }
 
+        const payload = this.eventParser.getPayload();
+        if (payload === null) {
+          const response = ResponseBuilder.badRequest('', this.traceId);
+          return Promise.reject(response);
+        }
+
         const keys = { cartId: cartId, sku: productSku };
-        const object = this.eventParser.getPayload();
+        const productQty: number = payload[this.quantityPropertyKey];
+        const object = { quantity: productQty };
 
         /* tslint:disable: prefer-object-spread */
         const keyedObject = Object.assign(keys, object);

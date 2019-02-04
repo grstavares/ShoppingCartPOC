@@ -225,7 +225,7 @@ describe('Lambda Handler', () => {
         const mocked = mockedEvents.getEvent(AWSEvent.ProductPutUnauthorizedWithSessionId);
         const objectId = mocked.queryStringParameters['sessionId']
         const rangeKey = mocked.pathParameters['productSku']
-        const object = { cartId: objectId, sku: rangeKey, name: 'Example', quantity: 10, price: 15.5};
+        const object = { cartId: objectId, sku: rangeKey, quantity: 10};
 
         const response = await mockedInjector.injectItemOnTable({ cartId: object.cartId, sku: object.sku}, object)
         .then((result) => { return lambdaTester(handler).event(mocked)});

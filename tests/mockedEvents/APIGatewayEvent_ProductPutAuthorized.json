@@ -85,6 +85,6 @@
         "domainName": "a12bc3456d.execute-api.sa-east-1.amazonaws.com",
         "apiId": "a12bc3456d"
     },
-    "body": "{\n  \"sku\": \"9867\",\n  \"name\": \"Product Example\",\n  \"quantity\": 15,\n  \"price\": 185.45\n}",
+    "body": "{\n  \"sku\": \"9867\",\n  \"quantity\": 15\n}",
     "isBase64Encoded": false
 }

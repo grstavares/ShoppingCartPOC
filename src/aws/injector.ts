@@ -1,15 +1,16 @@
 /* tslint:disable: no-implicit-dependencies */
-import { MessageBus, MetricBus, NoSQLTable, BackendMetrics, InputParser } from '../common/backend';
+import { MessageBus, MetricBus, NoSQLTable, BackendMetrics, Logger, InputParser, DependencyInjector } from '../common/backend';
 import { ErrorBuilder, ResponseBuilder, MetricBuilder } from '../common/utilities';
 import { InfrastructureMetric } from '../common/types';
 import { DynamoDBTable, AWSTopic, AWSMetricPublisher, AWSParser } from '.';
+import { ConsoleLogger } from './consoleLogger';
 
 export enum DependencyInjectorError {
     DependencyNotAvailable = 'DependencyNotAvailable',
     DependencyNotConfigured = 'DependencyNotConfigured',
 }
 
-export class AWSDependencyInjector {
+export class AWSDependencyInjector implements DependencyInjector {
 
     // private readonly traceId: string;
 
@@ -69,6 +70,13 @@ export class AWSDependencyInjector {
         if (event[appSyncIdentifier] === null || event[appSyncIdentifier] == undefined) {
             return AWSParser.parseAPIGatewayEvent(event);
         } else { return AWSParser.parseAppSyncEvent(event); }
+
+    }
+
+    public getLogger(): Logger {
+
+      const isInsideAWS = (process.env.LAMBDA_TASK_ROOT === null || process.env.LAMBDA_TASK_ROOT == undefined);
+      return new ConsoleLogger(!isInsideAWS);
 
     }
 

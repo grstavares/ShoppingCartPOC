@@ -18,7 +18,8 @@
         "resource": "/cart/{productSku}",
         "cartId": "$cartId",
         "sessionId": "$sessionId",
-        "sku": "$sku"
+        "sku": "$sku",
+        "productSku": "$sku"
       }
     }
 
