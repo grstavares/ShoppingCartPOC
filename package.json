@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "test": "clear && LAMBDA_TESTER_NODE_VERSION_CHECK=false mocha -r ts-node/register tests/**/*.spec.ts",
-    "build": "npm run test && webpack --config webpack.config.js"
+    "build": "npm run test && webpack --config webpack.config.js",
+    "package": "npm run build && aws cloudformation package --template-file solution-stack.json --s3-bucket <BUCKET NAME FOR CODE UPLOAD> --output-template-file "
   },
   "author": "Gustavo Tavares",
   "license": "ISC",
