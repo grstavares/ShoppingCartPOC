@@ -1,6 +1,6 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "Shopping Cart POC using microservices architecture",
+    "Description": "Shopping Cart POC using microservices architecture ",
 
     "Parameters": {
         "StageName" : {
