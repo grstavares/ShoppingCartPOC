@@ -3,40 +3,44 @@
     "Description": "Shopping Cart POC using microservices architecture ",
 
     "Parameters": {
-        "StageName" : {
-            "Type" : "String",
-            "Default" : "poc",
-            "Description" : "Name of the API Gateway Stage Where the API will be available."
-          }
+        "StageName": {
+            "Type": "String",
+            "Default": "poc",
+            "Description": "Name of the API Gateway Stage Where the API will be available."
+        }
     },
 
     "Resources": {
-
         "UserPoolSNSRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {
                 "RoleName": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-UserPoolSNSRole"]] },
                 "AssumeRolePolicyDocument": {
                     "Version": "2012-10-17",
-                    "Statement": [{
-                        "Effect": "Allow",
-                        "Principal": { "Service": ["cognito-idp.amazonaws.com"] },
-                        "Action": ["sts:AssumeRole"]
-                    }]
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": { "Service": ["cognito-idp.amazonaws.com"] },
+                            "Action": ["sts:AssumeRole"]
+                        }
+                    ]
                 },
                 "Path": "/",
-                "Policies": [{
-                    "PolicyName": "CognitoSNSPolicy",
-                    "PolicyDocument": {
-                        "Version": "2012-10-17",
-                        "Statement": [{
-                                "Effect": "Allow",
-                                "Resource": "*",
-                                "Action": ["sns:publish"]
-                            }
-                        ]
+                "Policies": [
+                    {
+                        "PolicyName": "CognitoSNSPolicy",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Resource": "*",
+                                    "Action": ["sns:publish"]
+                                }
+                            ]
+                        }
                     }
-                }]
+                ]
             }
         },
 
@@ -46,24 +50,30 @@
                 "RoleName": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-AuthenticatedUser"]] },
                 "AssumeRolePolicyDocument": {
                     "Version": "2012-10-17",
-                    "Statement": [{
-                        "Effect": "Allow",
-                        "Principal": { "Federated": ["cognito-identity.amazonaws.com"] },
-                        "Action": ["sts:AssumeRoleWithWebIdentity"]
-                    }]
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": { "Federated": ["cognito-identity.amazonaws.com"] },
+                            "Action": ["sts:AssumeRoleWithWebIdentity"]
+                        }
+                    ]
                 },
                 "Path": "/",
-                "Policies": [{
-                    "PolicyName": "CognitoAuthenticatedUserPolicy",
-                    "PolicyDocument": {
-                        "Version": "2012-10-17",
-                        "Statement": [{
-                            "Effect": "Allow",
-                            "Resource": "*",
-                            "Action": ["mobileanalytics:PutEvents", "cognito-sync:*", "cognito-identity:*"]
-                        }]
+                "Policies": [
+                    {
+                        "PolicyName": "CognitoAuthenticatedUserPolicy",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Resource": "*",
+                                    "Action": ["mobileanalytics:PutEvents", "cognito-sync:*", "cognito-identity:*"]
+                                }
+                            ]
+                        }
                     }
-                }]
+                ]
             }
         },
 
@@ -73,67 +83,77 @@
                 "RoleName": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-UnauthenticatedUser"]] },
                 "AssumeRolePolicyDocument": {
                     "Version": "2012-10-17",
-                    "Statement": [{
-                        "Effect": "Allow",
-                        "Principal": { "Federated": ["cognito-identity.amazonaws.com"] },
-                        "Action": ["sts:AssumeRoleWithWebIdentity"]
-                    }]
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": { "Federated": ["cognito-identity.amazonaws.com"] },
+                            "Action": ["sts:AssumeRoleWithWebIdentity"]
+                        }
+                    ]
                 },
                 "Path": "/",
-                "Policies": [{
-                    "PolicyName": "CognitoUnauthenticatedUserPolicy",
-                    "PolicyDocument": {
-                        "Version": "2012-10-17",
-                        "Statement": [{
-                                "Effect": "Allow",
-                                "Resource": "*",
-                                "Action": ["mobileanalytics:PutEvents", "cognito-sync:*"]
-                            }
-                        ]
+                "Policies": [
+                    {
+                        "PolicyName": "CognitoUnauthenticatedUserPolicy",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Resource": "*",
+                                    "Action": ["mobileanalytics:PutEvents", "cognito-sync:*"]
+                                }
+                            ]
+                        }
                     }
-                }]
+                ]
             }
         },
 
         "UserPool": {
-            "Type" : "AWS::Cognito::UserPool",
-            "Properties" : {
-              "SmsConfiguration" : {
-                "ExternalId" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-external"]] },
-                "SnsCallerArn" : { "Fn::GetAtt": ["UserPoolSNSRole", "Arn"] }
-              },
-              "UserPoolName" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-UserPool"]] }
+            "Type": "AWS::Cognito::UserPool",
+            "Properties": {
+                "SmsConfiguration": {
+                    "ExternalId": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-external"]] },
+                    "SnsCallerArn": { "Fn::GetAtt": ["UserPoolSNSRole", "Arn"] }
+                },
+                "UserPoolName": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-UserPool"]] }
             }
         },
 
         "UserPoolClient": {
-            "Type" : "AWS::Cognito::UserPoolClient",
-            "Properties" : {
-                "UserPoolId" : { "Ref": "UserPool" },
-                "ClientName" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-WebClient"]] },
-                "GenerateSecret" : false,
-                "RefreshTokenValidity" : 5
+            "Type": "AWS::Cognito::UserPoolClient",
+            "Properties": {
+                "UserPoolId": { "Ref": "UserPool" },
+                "ClientName": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-WebClient"]] },
+                "GenerateSecret": false,
+                "RefreshTokenValidity": 5
             }
         },
 
         "IdentityPool": {
-            "Type" : "AWS::Cognito::IdentityPool",
-            "Properties" : {
-              "IdentityPoolName" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "idPool"]] },
-              "AllowUnauthenticatedIdentities" : true,
-              "CognitoIdentityProviders" : [ {
-                "ClientId" : { "Ref": "UserPoolClient" },
-                "ProviderName" : { "Fn::GetAtt": ["UserPool", "ProviderName"] },
-                "ServerSideTokenCheck" : true
-              }]
+            "Type": "AWS::Cognito::IdentityPool",
+            "Properties": {
+                "IdentityPoolName": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "idPool"]] },
+                "AllowUnauthenticatedIdentities": true,
+                "CognitoIdentityProviders": [
+                    {
+                        "ClientId": { "Ref": "UserPoolClient" },
+                        "ProviderName": { "Fn::GetAtt": ["UserPool", "ProviderName"] },
+                        "ServerSideTokenCheck": true
+                    }
+                ]
             }
         },
 
         "IdentityPoolRoleMapping": {
-            "Type" : "AWS::Cognito::IdentityPoolRoleAttachment",
-            "Properties" : {
-              "IdentityPoolId" : { "Ref": "IdentityPool" },
-              "Roles" : { "authenticated":{ "Fn::GetAtt": ["AuthenticatedUser", "Arn"] }, "unauthenticated":{ "Fn::GetAtt": ["UnauthenticatedUser", "Arn"] } }
+            "Type": "AWS::Cognito::IdentityPoolRoleAttachment",
+            "Properties": {
+                "IdentityPoolId": { "Ref": "IdentityPool" },
+                "Roles": {
+                    "authenticated": { "Fn::GetAtt": ["AuthenticatedUser", "Arn"] },
+                    "unauthenticated": { "Fn::GetAtt": ["UnauthenticatedUser", "Arn"] }
+                }
             }
         },
 
@@ -141,36 +161,38 @@
             "Type": "AWS::DynamoDB::Table",
             "Properties": {
                 "AttributeDefinitions": [
-                    { "AttributeName" : "cartId", "AttributeType" : "S" },
-                    {"AttributeName" : "sku", "AttributeType" : "S" }],
+                    { "AttributeName": "cartId", "AttributeType": "S" },
+                    { "AttributeName": "sku", "AttributeType": "S" }
+                ],
                 "BillingMode": "PAY_PER_REQUEST",
                 "KeySchema": [
-                    { "AttributeName" : "cartId", "KeyType" : "HASH" },
-                    { "AttributeName" : "sku", "KeyType" : "RANGE" }],
+                    { "AttributeName": "cartId", "KeyType": "HASH" },
+                    { "AttributeName": "sku", "KeyType": "RANGE" }
+                ],
                 "TableName": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-MainTable"]] },
                 "Tags": [
-                    {"Key" : "Project", "Value" : "Darjelling"},
-                    {"Key" : "Service", "Value" : "ShoppingCart"},
-                    {"Key" : "Developer", "Value" : "GustavoTavares"},
-                    {"Key" : "Version", "Value" : "POC"}]
+                    { "Key": "Project", "Value": "Darjelling" },
+                    { "Key": "Service", "Value": "ShoppingCart" },
+                    { "Key": "Developer", "Value": "GustavoTavares" },
+                    { "Key": "Version", "Value": "POC" }
+                ]
             }
         },
 
         "CatalogTable": {
-          "Type": "AWS::DynamoDB::Table",
-          "Properties": {
-              "AttributeDefinitions": [
-                  {"AttributeName" : "sku", "AttributeType" : "S" }],
-              "BillingMode": "PAY_PER_REQUEST",
-              "KeySchema": [
-                  { "AttributeName" : "sku", "KeyType" : "HASH" }],
-              "TableName": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-Catalog"]] },
-              "Tags": [
-                  {"Key" : "Project", "Value" : "Darjelling"},
-                  {"Key" : "Service", "Value" : "ShoppingCart"},
-                  {"Key" : "Developer", "Value" : "GustavoTavares"},
-                  {"Key" : "Version", "Value" : "POC"}]
-          }
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+                "AttributeDefinitions": [{ "AttributeName": "sku", "AttributeType": "S" }],
+                "BillingMode": "PAY_PER_REQUEST",
+                "KeySchema": [{ "AttributeName": "sku", "KeyType": "HASH" }],
+                "TableName": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-Catalog"]] },
+                "Tags": [
+                    { "Key": "Project", "Value": "Darjelling" },
+                    { "Key": "Service", "Value": "ShoppingCart" },
+                    { "Key": "Developer", "Value": "GustavoTavares" },
+                    { "Key": "Version", "Value": "POC" }
+                ]
+            }
         },
 
         "MainFunction": {
@@ -180,21 +202,21 @@
                 "FunctionName": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-MainFunction"]] },
                 "Description": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-MainFunction"]] },
                 "Handler": "index.handler",
-                "Runtime": "nodejs8.10",
+                "Runtime": "nodejs16.x",
                 "Timeout": 10,
                 "MemorySize": 128,
                 "Environment": {
-                    "Variables" : { "DYNAMO_TABLE_NAME": { "Ref": "MainTable" }, "SNS_TOPIC_ARN": { "Ref": "MessageBus" } }
+                    "Variables": { "DYNAMO_TABLE_NAME": { "Ref": "MainTable" }, "SNS_TOPIC_ARN": { "Ref": "MessageBus" } }
                 },
                 "Role": { "Fn::GetAtt": ["MainFunctionExecutionRole", "Arn"] }
             }
         },
 
         "MessageBus": {
-            "Type" : "AWS::SNS::Topic",
-            "Properties" : {
-              "DisplayName" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-Topic"]] },
-              "TopicName" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-Topic"]] }
+            "Type": "AWS::SNS::Topic",
+            "Properties": {
+                "DisplayName": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-Topic"]] },
+                "TopicName": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-Topic"]] }
             }
         },
 
@@ -204,79 +226,102 @@
                 "RoleName": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-MainFunction-ExecRole"]] },
                 "AssumeRolePolicyDocument": {
                     "Version": "2012-10-17",
-                    "Statement": [{
-                        "Effect": "Allow",
-                        "Principal": { "Service": ["lambda.amazonaws.com"] },
-                        "Action": ["sts:AssumeRole"]
-                    }]
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": { "Service": ["lambda.amazonaws.com"] },
+                            "Action": ["sts:AssumeRole"]
+                        }
+                    ]
                 },
                 "Path": "/",
-                "Policies": [{
-                    "PolicyName": "root",
-                    "PolicyDocument": {
-                        "Version": "2012-10-17",
-                        "Statement": [{
-                                "Effect": "Allow",
-                                "Resource": { "Fn::GetAtt" : [ "MainTable", "Arn" ] },
-                                "Action": ["dynamodb:GetItem", "dynamodb:Query", "dynamodb:Scan", "dynamodb:BatchGetItem", "dynamodb:BatchWriteItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"]
-                            },
-                            {
-                                "Effect": "Allow",
-                                "Resource": { "Ref": "MessageBus" },
-                                "Action": ["sns:Publish"]
-                            },
-                            {
-                                "Effect": "Allow",
-                                "Resource": "*",
-                                "Action": ["cloudwatch:PutMetricData", "logs:CreateLogGroup", "logs:PutLogEvents", "logs:CreateLogStream"]
-                            },
-                            {
-                                "Effect": "Allow",
-                                "Resource": "*",
-                                "Action": ["xray:PutTelemetryRecords", "xray:PutTraceSegments"]
-                            }
-                        ]
+                "Policies": [
+                    {
+                        "PolicyName": "root",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Resource": { "Fn::GetAtt": ["MainTable", "Arn"] },
+                                    "Action": [
+                                        "dynamodb:GetItem",
+                                        "dynamodb:Query",
+                                        "dynamodb:Scan",
+                                        "dynamodb:BatchGetItem",
+                                        "dynamodb:BatchWriteItem",
+                                        "dynamodb:PutItem",
+                                        "dynamodb:UpdateItem",
+                                        "dynamodb:DeleteItem"
+                                    ]
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Resource": { "Ref": "MessageBus" },
+                                    "Action": ["sns:Publish"]
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Resource": "*",
+                                    "Action": ["cloudwatch:PutMetricData", "logs:CreateLogGroup", "logs:PutLogEvents", "logs:CreateLogStream"]
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Resource": "*",
+                                    "Action": ["xray:PutTelemetryRecords", "xray:PutTraceSegments"]
+                                }
+                            ]
+                        }
                     }
-                }]
+                ]
             }
         },
 
         "GatewayInvokeLambdaPermission": {
-          "Type": "AWS::Lambda::Permission",
-          "Properties": {
-            "Action": "lambda:invokeFunction",
-            "FunctionName": { "Fn::GetAtt": ["MainFunction", "Arn"] },
-            "Principal": "apigateway.amazonaws.com",
-            "SourceArn": {
-              "Fn::Join": ["", ["arn:aws:execute-api:", { "Ref": "AWS::Region" }, ":", { "Ref": "AWS::AccountId" }, ":", { "Ref": "RestApi" }, "/*"]]
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+                "Action": "lambda:invokeFunction",
+                "FunctionName": { "Fn::GetAtt": ["MainFunction", "Arn"] },
+                "Principal": "apigateway.amazonaws.com",
+                "SourceArn": {
+                    "Fn::Join": [
+                        "",
+                        ["arn:aws:execute-api:", { "Ref": "AWS::Region" }, ":", { "Ref": "AWS::AccountId" }, ":", { "Ref": "RestApi" }, "/*"]
+                    ]
+                }
             }
-          }
         },
 
         "RestApi": {
             "Type": "AWS::ApiGateway::RestApi",
             "Properties": {
-              "Description": { "Fn::Join": ["", ["REST API for Shopping Cart POC - ", { "Ref": "AWS::StackName" }]] },
-              "Name": { "Fn::Join": ["-", [{ "Ref": "AWS::StackName" }, "API"]] }
+                "Description": { "Fn::Join": ["", ["REST API for Shopping Cart POC - ", { "Ref": "AWS::StackName" }]] },
+                "Name": { "Fn::Join": ["-", [{ "Ref": "AWS::StackName" }, "API"]] }
             }
         },
 
         "APIDeployment": {
-            "Type" : "AWS::ApiGateway::Deployment",
-            "Properties" : {
-              "Description" : "Automated API Deployment",
-              "RestApiId"   : { "Ref": "RestApi" },
-              "StageName"   : { "Ref" : "StageName" },
-              "StageDescription" : {
-                "CachingEnabled" : false,
-                "DataTraceEnabled" : false,
-                "Description" : "Stage for POC Evaluation",
-                "TracingEnabled" : true
-              }
+            "Type": "AWS::ApiGateway::Deployment",
+            "Properties": {
+                "Description": "Automated API Deployment",
+                "RestApiId": { "Ref": "RestApi" },
+                "StageName": { "Ref": "StageName" },
+                "StageDescription": {
+                    "CachingEnabled": false,
+                    "DataTraceEnabled": false,
+                    "Description": "Stage for POC Evaluation",
+                    "TracingEnabled": true
+                }
             },
-            "DependsOn" : [
-                "ApiResourceCartGET", "ApiResourceCartPOST", "ApiResourceCartDELETE", "ApiResourceCartOPTIONS",
-                "ApiResourceProductGET", "ApiResourceProductPUT", "ApiResourceProductDELETE", "ApiResourceProductOPTIONS",
+            "DependsOn": [
+                "ApiResourceCartGET",
+                "ApiResourceCartPOST",
+                "ApiResourceCartDELETE",
+                "ApiResourceCartOPTIONS",
+                "ApiResourceProductGET",
+                "ApiResourceProductPUT",
+                "ApiResourceProductDELETE",
+                "ApiResourceProductOPTIONS",
                 "ApiResourceConversionPOST"
             ]
         },
@@ -284,27 +329,27 @@
         "ApiResourceCart": {
             "Type": "AWS::ApiGateway::Resource",
             "Properties": {
-              "RestApiId": { "Ref": "RestApi" },
-              "ParentId": { "Fn::GetAtt": ["RestApi", "RootResourceId"] },
-              "PathPart": "cart"
+                "RestApiId": { "Ref": "RestApi" },
+                "ParentId": { "Fn::GetAtt": ["RestApi", "RootResourceId"] },
+                "PathPart": "cart"
             }
         },
 
         "ApiResourceProduct": {
             "Type": "AWS::ApiGateway::Resource",
             "Properties": {
-              "RestApiId": { "Ref": "RestApi" },
-              "ParentId": { "Ref": "ApiResourceCart" },
-              "PathPart": "{productSku}"
+                "RestApiId": { "Ref": "RestApi" },
+                "ParentId": { "Ref": "ApiResourceCart" },
+                "PathPart": "{productSku}"
             }
         },
 
         "ApiResourceConversion": {
             "Type": "AWS::ApiGateway::Resource",
             "Properties": {
-              "RestApiId": { "Ref": "RestApi" },
-              "ParentId": { "Fn::GetAtt": ["RestApi", "RootResourceId"] },
-              "PathPart": "conversion"
+                "RestApiId": { "Ref": "RestApi" },
+                "ParentId": { "Fn::GetAtt": ["RestApi", "RootResourceId"] },
+                "PathPart": "conversion"
             }
         },
 
@@ -312,31 +357,35 @@
             "DependsOn": "GatewayInvokeLambdaPermission",
             "Type": "AWS::ApiGateway::Method",
             "Properties": {
-              "AuthorizationType" : "NONE",
-              "HttpMethod" : "OPTIONS",
-              "ResourceId" : { "Ref": "ApiResourceCart" },
-              "RestApiId" : { "Ref": "RestApi" },
-              "Integration" : {
-                "Type" : "MOCK",
-                "IntegrationResponses" : [ {
-                  "StatusCode" : "200",
-                  "ResponseParameters" : {
-                    "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-                    "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
-                    "method.response.header.Access-Control-Allow-Origin": "'*'"
-                   },
-                   "ResponseTemplates" : { "application/json": "{'statusCode': 200}" }
-                } ],
-                "PassthroughBehavior" : "WHEN_NO_MATCH"
-              },
-              "MethodResponses" : [ {
-                "StatusCode" : "200",
-                "ResponseParameters" : {
-                  "method.response.header.Access-Control-Allow-Headers": false,
-                  "method.response.header.Access-Control-Allow-Methods": false,
-                  "method.response.header.Access-Control-Allow-Origin": false
-                 }
-                } ]
+                "AuthorizationType": "NONE",
+                "HttpMethod": "OPTIONS",
+                "ResourceId": { "Ref": "ApiResourceCart" },
+                "RestApiId": { "Ref": "RestApi" },
+                "Integration": {
+                    "Type": "MOCK",
+                    "IntegrationResponses": [
+                        {
+                            "StatusCode": "200",
+                            "ResponseParameters": {
+                                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                                "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+                                "method.response.header.Access-Control-Allow-Origin": "'*'"
+                            },
+                            "ResponseTemplates": { "application/json": "{'statusCode': 200}" }
+                        }
+                    ],
+                    "PassthroughBehavior": "WHEN_NO_MATCH"
+                },
+                "MethodResponses": [
+                    {
+                        "StatusCode": "200",
+                        "ResponseParameters": {
+                            "method.response.header.Access-Control-Allow-Headers": false,
+                            "method.response.header.Access-Control-Allow-Methods": false,
+                            "method.response.header.Access-Control-Allow-Origin": false
+                        }
+                    }
+                ]
             }
         },
 
@@ -345,18 +394,27 @@
             "Type": "AWS::ApiGateway::Method",
 
             "Properties": {
-
-              "AuthorizationType": "NONE",
-              "HttpMethod": "GET",
-              "RestApiId": { "Ref": "RestApi" },
-              "ResourceId": { "Ref": "ApiResourceCart" },
-              "RequestParameters": { "method.request.querystring.sessionId": true },
-              "Integration": {
-                "Type": "AWS_PROXY",
-                "IntegrationHttpMethod": "POST",
-                "Uri": { "Fn::Join": ["",[ "arn:aws:apigateway:", { "Ref": "AWS::Region"}, ":lambda:path/2015-03-31/functions/", { "Fn::GetAtt": ["MainFunction", "Arn"]}, "/invocations" ] ] }
-              }
-
+                "AuthorizationType": "NONE",
+                "HttpMethod": "GET",
+                "RestApiId": { "Ref": "RestApi" },
+                "ResourceId": { "Ref": "ApiResourceCart" },
+                "RequestParameters": { "method.request.querystring.sessionId": true },
+                "Integration": {
+                    "Type": "AWS_PROXY",
+                    "IntegrationHttpMethod": "POST",
+                    "Uri": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "arn:aws:apigateway:",
+                                { "Ref": "AWS::Region" },
+                                ":lambda:path/2015-03-31/functions/",
+                                { "Fn::GetAtt": ["MainFunction", "Arn"] },
+                                "/invocations"
+                            ]
+                        ]
+                    }
+                }
             }
         },
 
@@ -365,18 +423,27 @@
             "Type": "AWS::ApiGateway::Method",
 
             "Properties": {
-
-              "AuthorizationType": "NONE",
-              "HttpMethod": "POST",
-              "RestApiId": { "Ref": "RestApi" },
-              "ResourceId": { "Ref": "ApiResourceCart" },
-              "RequestParameters": { "method.request.querystring.sessionId": true },
-              "Integration": {
-                "Type": "AWS_PROXY",
-                "IntegrationHttpMethod": "POST",
-                "Uri": { "Fn::Join": ["",[ "arn:aws:apigateway:", { "Ref": "AWS::Region"}, ":lambda:path/2015-03-31/functions/", { "Fn::GetAtt": ["MainFunction", "Arn"]}, "/invocations" ] ] }
-              }
-
+                "AuthorizationType": "NONE",
+                "HttpMethod": "POST",
+                "RestApiId": { "Ref": "RestApi" },
+                "ResourceId": { "Ref": "ApiResourceCart" },
+                "RequestParameters": { "method.request.querystring.sessionId": true },
+                "Integration": {
+                    "Type": "AWS_PROXY",
+                    "IntegrationHttpMethod": "POST",
+                    "Uri": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "arn:aws:apigateway:",
+                                { "Ref": "AWS::Region" },
+                                ":lambda:path/2015-03-31/functions/",
+                                { "Fn::GetAtt": ["MainFunction", "Arn"] },
+                                "/invocations"
+                            ]
+                        ]
+                    }
+                }
             }
         },
 
@@ -385,18 +452,27 @@
             "Type": "AWS::ApiGateway::Method",
 
             "Properties": {
-
-              "AuthorizationType": "NONE",
-              "HttpMethod": "DELETE",
-              "RestApiId": { "Ref": "RestApi" },
-              "ResourceId": { "Ref": "ApiResourceCart" },
-              "RequestParameters": { "method.request.querystring.sessionId": true },
-              "Integration": {
-                "Type": "AWS_PROXY",
-                "IntegrationHttpMethod": "POST",
-                "Uri": { "Fn::Join": ["",[ "arn:aws:apigateway:", { "Ref": "AWS::Region"}, ":lambda:path/2015-03-31/functions/", { "Fn::GetAtt": ["MainFunction", "Arn"]}, "/invocations" ] ] }
-              }
-
+                "AuthorizationType": "NONE",
+                "HttpMethod": "DELETE",
+                "RestApiId": { "Ref": "RestApi" },
+                "ResourceId": { "Ref": "ApiResourceCart" },
+                "RequestParameters": { "method.request.querystring.sessionId": true },
+                "Integration": {
+                    "Type": "AWS_PROXY",
+                    "IntegrationHttpMethod": "POST",
+                    "Uri": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "arn:aws:apigateway:",
+                                { "Ref": "AWS::Region" },
+                                ":lambda:path/2015-03-31/functions/",
+                                { "Fn::GetAtt": ["MainFunction", "Arn"] },
+                                "/invocations"
+                            ]
+                        ]
+                    }
+                }
             }
         },
 
@@ -404,31 +480,35 @@
             "DependsOn": "GatewayInvokeLambdaPermission",
             "Type": "AWS::ApiGateway::Method",
             "Properties": {
-              "AuthorizationType" : "NONE",
-              "HttpMethod" : "OPTIONS",
-              "ResourceId" : { "Ref": "ApiResourceProduct" },
-              "RestApiId" : { "Ref": "RestApi" },
-              "Integration" : {
-                "Type" : "MOCK",
-                "IntegrationResponses" : [ {
-                  "StatusCode" : "200",
-                  "ResponseParameters" : {
-                    "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-                    "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
-                    "method.response.header.Access-Control-Allow-Origin": "'*'"
-                   },
-                   "ResponseTemplates" : { "application/json": "{'statusCode': 200}" }
-                } ],
-                "PassthroughBehavior" : "WHEN_NO_MATCH"
-              },
-              "MethodResponses" : [ {
-                "StatusCode" : "200",
-                "ResponseParameters" : {
-                  "method.response.header.Access-Control-Allow-Headers": false,
-                  "method.response.header.Access-Control-Allow-Methods": false,
-                  "method.response.header.Access-Control-Allow-Origin": false
-                 }
-                } ]
+                "AuthorizationType": "NONE",
+                "HttpMethod": "OPTIONS",
+                "ResourceId": { "Ref": "ApiResourceProduct" },
+                "RestApiId": { "Ref": "RestApi" },
+                "Integration": {
+                    "Type": "MOCK",
+                    "IntegrationResponses": [
+                        {
+                            "StatusCode": "200",
+                            "ResponseParameters": {
+                                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                                "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+                                "method.response.header.Access-Control-Allow-Origin": "'*'"
+                            },
+                            "ResponseTemplates": { "application/json": "{'statusCode': 200}" }
+                        }
+                    ],
+                    "PassthroughBehavior": "WHEN_NO_MATCH"
+                },
+                "MethodResponses": [
+                    {
+                        "StatusCode": "200",
+                        "ResponseParameters": {
+                            "method.response.header.Access-Control-Allow-Headers": false,
+                            "method.response.header.Access-Control-Allow-Methods": false,
+                            "method.response.header.Access-Control-Allow-Origin": false
+                        }
+                    }
+                ]
             }
         },
 
@@ -437,18 +517,27 @@
             "Type": "AWS::ApiGateway::Method",
 
             "Properties": {
-
-              "AuthorizationType": "NONE",
-              "HttpMethod": "GET",
-              "RestApiId": { "Ref": "RestApi" },
-              "ResourceId": { "Ref": "ApiResourceProduct" },
-              "RequestParameters": { "method.request.querystring.sessionId": true, "method.request.path.productSku": true },
-              "Integration": {
-                "Type": "AWS_PROXY",
-                "IntegrationHttpMethod": "POST",
-                "Uri": { "Fn::Join": ["",[ "arn:aws:apigateway:", { "Ref": "AWS::Region"}, ":lambda:path/2015-03-31/functions/", { "Fn::GetAtt": ["MainFunction", "Arn"]}, "/invocations" ] ] }
-              }
-
+                "AuthorizationType": "NONE",
+                "HttpMethod": "GET",
+                "RestApiId": { "Ref": "RestApi" },
+                "ResourceId": { "Ref": "ApiResourceProduct" },
+                "RequestParameters": { "method.request.querystring.sessionId": true, "method.request.path.productSku": true },
+                "Integration": {
+                    "Type": "AWS_PROXY",
+                    "IntegrationHttpMethod": "POST",
+                    "Uri": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "arn:aws:apigateway:",
+                                { "Ref": "AWS::Region" },
+                                ":lambda:path/2015-03-31/functions/",
+                                { "Fn::GetAtt": ["MainFunction", "Arn"] },
+                                "/invocations"
+                            ]
+                        ]
+                    }
+                }
             }
         },
 
@@ -457,18 +546,27 @@
             "Type": "AWS::ApiGateway::Method",
 
             "Properties": {
-
-              "AuthorizationType": "NONE",
-              "HttpMethod": "PUT",
-              "RestApiId": { "Ref": "RestApi" },
-              "ResourceId": { "Ref": "ApiResourceProduct" },
-              "RequestParameters": { "method.request.querystring.sessionId": true, "method.request.path.productSku": true },
-              "Integration": {
-                "Type": "AWS_PROXY",
-                "IntegrationHttpMethod": "POST",
-                "Uri": { "Fn::Join": ["",[ "arn:aws:apigateway:", { "Ref": "AWS::Region"}, ":lambda:path/2015-03-31/functions/", { "Fn::GetAtt": ["MainFunction", "Arn"]}, "/invocations" ] ] }
-              }
-
+                "AuthorizationType": "NONE",
+                "HttpMethod": "PUT",
+                "RestApiId": { "Ref": "RestApi" },
+                "ResourceId": { "Ref": "ApiResourceProduct" },
+                "RequestParameters": { "method.request.querystring.sessionId": true, "method.request.path.productSku": true },
+                "Integration": {
+                    "Type": "AWS_PROXY",
+                    "IntegrationHttpMethod": "POST",
+                    "Uri": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "arn:aws:apigateway:",
+                                { "Ref": "AWS::Region" },
+                                ":lambda:path/2015-03-31/functions/",
+                                { "Fn::GetAtt": ["MainFunction", "Arn"] },
+                                "/invocations"
+                            ]
+                        ]
+                    }
+                }
             }
         },
 
@@ -477,18 +575,27 @@
             "Type": "AWS::ApiGateway::Method",
 
             "Properties": {
-
-              "AuthorizationType": "NONE",
-              "HttpMethod": "DELETE",
-              "RestApiId": { "Ref": "RestApi" },
-              "ResourceId": { "Ref": "ApiResourceProduct" },
-              "RequestParameters": { "method.request.querystring.sessionId": true, "method.request.path.productSku": true },
-              "Integration": {
-                "Type": "AWS_PROXY",
-                "IntegrationHttpMethod": "POST",
-                "Uri": { "Fn::Join": ["",[ "arn:aws:apigateway:", { "Ref": "AWS::Region"}, ":lambda:path/2015-03-31/functions/", { "Fn::GetAtt": ["MainFunction", "Arn"]}, "/invocations" ] ] }
-              }
-
+                "AuthorizationType": "NONE",
+                "HttpMethod": "DELETE",
+                "RestApiId": { "Ref": "RestApi" },
+                "ResourceId": { "Ref": "ApiResourceProduct" },
+                "RequestParameters": { "method.request.querystring.sessionId": true, "method.request.path.productSku": true },
+                "Integration": {
+                    "Type": "AWS_PROXY",
+                    "IntegrationHttpMethod": "POST",
+                    "Uri": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "arn:aws:apigateway:",
+                                { "Ref": "AWS::Region" },
+                                ":lambda:path/2015-03-31/functions/",
+                                { "Fn::GetAtt": ["MainFunction", "Arn"] },
+                                "/invocations"
+                            ]
+                        ]
+                    }
+                }
             }
         },
 
@@ -497,224 +604,273 @@
             "Type": "AWS::ApiGateway::Method",
 
             "Properties": {
-
-              "AuthorizationType": "NONE",
-              "HttpMethod": "POST",
-              "RestApiId": { "Ref": "RestApi" },
-              "ResourceId": { "Ref": "ApiResourceConversion" },
-              "RequestParameters": { "method.request.querystring.sessionId": true },
-              "Integration": {
-                "Type": "AWS_PROXY",
-                "IntegrationHttpMethod": "POST",
-                "Uri": { "Fn::Join": ["",[ "arn:aws:apigateway:", { "Ref": "AWS::Region"}, ":lambda:path/2015-03-31/functions/", { "Fn::GetAtt": ["MainFunction", "Arn"]}, "/invocations" ] ] }
-              }
-
+                "AuthorizationType": "NONE",
+                "HttpMethod": "POST",
+                "RestApiId": { "Ref": "RestApi" },
+                "ResourceId": { "Ref": "ApiResourceConversion" },
+                "RequestParameters": { "method.request.querystring.sessionId": true },
+                "Integration": {
+                    "Type": "AWS_PROXY",
+                    "IntegrationHttpMethod": "POST",
+                    "Uri": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "arn:aws:apigateway:",
+                                { "Ref": "AWS::Region" },
+                                ":lambda:path/2015-03-31/functions/",
+                                { "Fn::GetAtt": ["MainFunction", "Arn"] },
+                                "/invocations"
+                            ]
+                        ]
+                    }
+                }
             }
         },
 
         "AppSyncExecutionRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {
-              "AssumeRolePolicyDocument": {
-                "Version": "2012-10-17",
-                "Statement": [{
-                  "Effect": "Allow",
-                  "Principal": { "Service": ["appsync.amazonaws.com"] },
-                  "Action": ["sts:AssumeRole"]
-                }]
-              },
-              "Path": "/",
-              "Policies": [{
-                "PolicyName": "root",
-                "PolicyDocument": {
-                  "Version": "2012-10-17",
-                  "Statement": [
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": { "Service": ["appsync.amazonaws.com"] },
+                            "Action": ["sts:AssumeRole"]
+                        }
+                    ]
+                },
+                "Path": "/",
+                "Policies": [
                     {
-                      "Effect": "Allow",
-                      "Resource": [{ "Fn::GetAtt": ["MainTable", "Arn"] }, { "Fn::GetAtt": ["CatalogTable", "Arn"] }],
-                      "Action": [
-                        "dynamodb:GetItem", "dynamodb:Query", "dynamodb:Scan",
-                        "dynamodb:BatchGetItem", "dynamodb:BatchWriteItem",
-                        "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem" ]
-                    }, {
-                        "Effect": "Allow",
-                        "Resource": [
-                            { "Fn::GetAtt": ["MainFunction", "Arn"] },
-                            { "Fn::Join": ["", [{ "Fn::GetAtt": ["MainFunction", "Arn"] }, ":*"]] }
-                        ],
-                        "Action": ["lambda:invokeFunction"]
-                    }, {
-                      "Effect": "Allow",
-                      "Resource": "*",
-                      "Action": ["logs:CreateLogGroup", "logs:PutLogEvents", "logs:CreateLogStream"]
+                        "PolicyName": "root",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Resource": [{ "Fn::GetAtt": ["MainTable", "Arn"] }, { "Fn::GetAtt": ["CatalogTable", "Arn"] }],
+                                    "Action": [
+                                        "dynamodb:GetItem",
+                                        "dynamodb:Query",
+                                        "dynamodb:Scan",
+                                        "dynamodb:BatchGetItem",
+                                        "dynamodb:BatchWriteItem",
+                                        "dynamodb:PutItem",
+                                        "dynamodb:UpdateItem",
+                                        "dynamodb:DeleteItem"
+                                    ]
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Resource": [
+                                        { "Fn::GetAtt": ["MainFunction", "Arn"] },
+                                        { "Fn::Join": ["", [{ "Fn::GetAtt": ["MainFunction", "Arn"] }, ":*"]] }
+                                    ],
+                                    "Action": ["lambda:invokeFunction"]
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Resource": "*",
+                                    "Action": ["logs:CreateLogGroup", "logs:PutLogEvents", "logs:CreateLogStream"]
+                                }
+                            ]
+                        }
                     }
-                  ]
-                }
-              }]
+                ]
             }
         },
 
         "GraphQLEndpoint": {
-            "Type" : "AWS::AppSync::GraphQLApi",
-            "Properties" : {
-              "Name" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-GraphQL"]] },
-              "AuthenticationType" : "API_KEY",
-              "LogConfig" : {
-                "CloudWatchLogsRoleArn" : { "Fn::GetAtt": ["AppSyncExecutionRole", "Arn"] },
-                "FieldLogLevel" : "NONE"
-              }
+            "Type": "AWS::AppSync::GraphQLApi",
+            "Properties": {
+                "Name": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "-GraphQL"]] },
+                "AuthenticationType": "API_KEY",
+                "LogConfig": {
+                    "CloudWatchLogsRoleArn": { "Fn::GetAtt": ["AppSyncExecutionRole", "Arn"] },
+                    "FieldLogLevel": "NONE"
+                }
             }
         },
 
         "GraphQLAPIKey": {
-            "Type" : "AWS::AppSync::ApiKey",
-            "Properties" : {
-                "Description" : "POC Key",
-                "ApiId" : { "Fn::GetAtt" : [ "GraphQLEndpoint", "ApiId" ] }
+            "Type": "AWS::AppSync::ApiKey",
+            "Properties": {
+                "Description": "POC Key",
+                "ApiId": { "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"] }
             }
         },
 
-        "GraphQLDataSource" : {
-            "Type" : "AWS::AppSync::DataSource",
-            "Properties" : {
-            "Type" : "AMAZON_DYNAMODB",
-            "Description" : "ShoppingCart Microservice Repository",
-            "ServiceRoleArn" : { "Fn::GetAtt": ["AppSyncExecutionRole", "Arn"] },
-            "ApiId" : { "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"] },
-            "Name" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "DataSource"]] },
-            "DynamoDBConfig" : {
-                "TableName" : { "Ref": "MainTable" },
-                "AwsRegion" : { "Ref" : "AWS::Region" },
-                "UseCallerCredentials" : false
-            }
+        "GraphQLDataSource": {
+            "Type": "AWS::AppSync::DataSource",
+            "Properties": {
+                "Type": "AMAZON_DYNAMODB",
+                "Description": "ShoppingCart Microservice Repository",
+                "ServiceRoleArn": { "Fn::GetAtt": ["AppSyncExecutionRole", "Arn"] },
+                "ApiId": { "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"] },
+                "Name": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "DataSource"]] },
+                "DynamoDBConfig": {
+                    "TableName": { "Ref": "MainTable" },
+                    "AwsRegion": { "Ref": "AWS::Region" },
+                    "UseCallerCredentials": false
+                }
             }
         },
 
-        "GraphQLCatalogDataSource" : {
-          "Type" : "AWS::AppSync::DataSource",
-          "Properties" : {
-          "Type" : "AMAZON_DYNAMODB",
-          "Description" : "ShoppingCart Microservice Repository",
-          "ServiceRoleArn" : { "Fn::GetAtt": ["AppSyncExecutionRole", "Arn"] },
-          "ApiId" : { "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"] },
-          "Name" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "Catalog"]] },
-          "DynamoDBConfig" : {
-              "TableName" : { "Ref": "CatalogTable" },
-              "AwsRegion" : { "Ref" : "AWS::Region" },
-              "UseCallerCredentials" : false
-          }
-          }
+        "GraphQLCatalogDataSource": {
+            "Type": "AWS::AppSync::DataSource",
+            "Properties": {
+                "Type": "AMAZON_DYNAMODB",
+                "Description": "ShoppingCart Microservice Repository",
+                "ServiceRoleArn": { "Fn::GetAtt": ["AppSyncExecutionRole", "Arn"] },
+                "ApiId": { "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"] },
+                "Name": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "Catalog"]] },
+                "DynamoDBConfig": {
+                    "TableName": { "Ref": "CatalogTable" },
+                    "AwsRegion": { "Ref": "AWS::Region" },
+                    "UseCallerCredentials": false
+                }
+            }
         },
 
-        "GraphQLLambdaDataSource" : {
-            "Type" : "AWS::AppSync::DataSource",
-            "Properties" : {
-            "Type" : "AWS_LAMBDA",
-            "Description" : "ShoppingCart Microservice Main Function",
-            "ServiceRoleArn" : { "Fn::GetAtt": ["AppSyncExecutionRole", "Arn"] },
-            "ApiId" : { "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"] },
-            "Name" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "LambdaDataSource"]] },
-            "LambdaConfig" : {
-                "LambdaFunctionArn" : { "Fn::GetAtt": ["MainFunction", "Arn"] }
-              }
+        "GraphQLLambdaDataSource": {
+            "Type": "AWS::AppSync::DataSource",
+            "Properties": {
+                "Type": "AWS_LAMBDA",
+                "Description": "ShoppingCart Microservice Main Function",
+                "ServiceRoleArn": { "Fn::GetAtt": ["AppSyncExecutionRole", "Arn"] },
+                "ApiId": { "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"] },
+                "Name": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "LambdaDataSource"]] },
+                "LambdaConfig": {
+                    "LambdaFunctionArn": { "Fn::GetAtt": ["MainFunction", "Arn"] }
+                }
             }
         },
 
         "GraphQLSchema": {
-            "Type" : "AWS::AppSync::GraphQLSchema",
-            "Properties" : {
-            "ApiId" : { "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"] },
-            "DefinitionS3Location" : "./ShoppingCartSchema.graphql"
+            "Type": "AWS::AppSync::GraphQLSchema",
+            "Properties": {
+                "ApiId": { "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"] },
+                "DefinitionS3Location": "./ShoppingCartSchema.graphql"
             }
         },
 
         "GraphQLGetCartProductFunction": {
-          "Type" : "AWS::AppSync::FunctionConfiguration",
-          "Properties" : {
-            "ApiId": { "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ] },
-            "Name" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "GetProductCartInfoFromDataSource"]] },
-            "DataSourceName": { "Fn::GetAtt": [ "GraphQLDataSource", "Name" ] },
-            "FunctionVersion" : "2018-05-29",
-            "RequestMappingTemplate": { "Fn::Join" : [ "", [
-              "#set($cartId = $ctx.stash.cartId)\r\n",
-              "#set($sku = $ctx.stash.sku)\r\n",
-              "{\r\n",
-              "    \"operation\": \"GetItem\",\r\n",
-              "    \"key\": {\r\n",
-              "        \"cartId\": $util.dynamodb.toDynamoDBJson($cartId),\r\n",
-              "        \"sku\":  $util.dynamodb.toDynamoDBJson($sku),\r\n",
-              "    }\r\n",
-              "}"
-            ] ] },
-          "ResponseMappingTemplate": { "Fn::Join" : [ "", [
-            "#if($ctx.error)\r\n",
-            "    $util.error($ctx.error.message, $ctx.error.type)\r\n",
-            "#end\r\n",
-            "$util.qr($ctx.stash.put(\"quantity\", $ctx.result.quantity))\r\n",
-            "$util.toJson($ctx.result)"
-          ] ] }
-          }
+            "Type": "AWS::AppSync::FunctionConfiguration",
+            "Properties": {
+                "ApiId": { "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"] },
+                "Name": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "GetProductCartInfoFromDataSource"]] },
+                "DataSourceName": { "Fn::GetAtt": ["GraphQLDataSource", "Name"] },
+                "FunctionVersion": "2018-05-29",
+                "RequestMappingTemplate": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "#set($cartId = $ctx.stash.cartId)\r\n",
+                            "#set($sku = $ctx.stash.sku)\r\n",
+                            "{\r\n",
+                            "    \"operation\": \"GetItem\",\r\n",
+                            "    \"key\": {\r\n",
+                            "        \"cartId\": $util.dynamodb.toDynamoDBJson($cartId),\r\n",
+                            "        \"sku\":  $util.dynamodb.toDynamoDBJson($sku),\r\n",
+                            "    }\r\n",
+                            "}"
+                        ]
+                    ]
+                },
+                "ResponseMappingTemplate": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "#if($ctx.error)\r\n",
+                            "    $util.error($ctx.error.message, $ctx.error.type)\r\n",
+                            "#end\r\n",
+                            "$util.qr($ctx.stash.put(\"quantity\", $ctx.result.quantity))\r\n",
+                            "$util.toJson($ctx.result)"
+                        ]
+                    ]
+                }
+            }
         },
 
-       "GraphQLGetCatalogFunction": {
-          "Type" : "AWS::AppSync::FunctionConfiguration",
-          "Properties" : {
-            "ApiId": { "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ] },
-            "Name" : { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "GetCatalogInfoFromDataSource"]] },
-            "DataSourceName": { "Fn::GetAtt": [ "GraphQLCatalogDataSource", "Name" ] },
-            "FunctionVersion" : "2018-05-29",
-            "RequestMappingTemplate": { "Fn::Join" : [ "", [
-                "#set($sku = $ctx.stash.sku)\r\n",
-                "{\r\n",
-                "    \"operation\": \"GetItem\",\r\n",
-                "    \"key\": {\r\n",
-                "        \"sku\":  $util.dynamodb.toDynamoDBJson($sku)\r\n",
-                "    }\r\n",
-                "}"
-              ] ] },
-            "ResponseMappingTemplate": { "Fn::Join" : [ "", [
-              "#if($ctx.error)\r\n",
-              "    $util.error($ctx.error.message, $ctx.error.type)\r\n",
-              "#end\r\n",
-              "$util.qr($ctx.stash.put(\"name\", $ctx.result.name))\r\n",
-              "$util.qr($ctx.stash.put(\"price\", $ctx.result.price))\r\n",
-              "$util.toJson($ctx.result)"
-            ] ] }
-          }
+        "GraphQLGetCatalogFunction": {
+            "Type": "AWS::AppSync::FunctionConfiguration",
+            "Properties": {
+                "ApiId": { "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"] },
+                "Name": { "Fn::Join": ["", [{ "Ref": "AWS::StackName" }, "GetCatalogInfoFromDataSource"]] },
+                "DataSourceName": { "Fn::GetAtt": ["GraphQLCatalogDataSource", "Name"] },
+                "FunctionVersion": "2018-05-29",
+                "RequestMappingTemplate": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "#set($sku = $ctx.stash.sku)\r\n",
+                            "{\r\n",
+                            "    \"operation\": \"GetItem\",\r\n",
+                            "    \"key\": {\r\n",
+                            "        \"sku\":  $util.dynamodb.toDynamoDBJson($sku)\r\n",
+                            "    }\r\n",
+                            "}"
+                        ]
+                    ]
+                },
+                "ResponseMappingTemplate": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "#if($ctx.error)\r\n",
+                            "    $util.error($ctx.error.message, $ctx.error.type)\r\n",
+                            "#end\r\n",
+                            "$util.qr($ctx.stash.put(\"name\", $ctx.result.name))\r\n",
+                            "$util.qr($ctx.stash.put(\"price\", $ctx.result.price))\r\n",
+                            "$util.toJson($ctx.result)"
+                        ]
+                    ]
+                }
+            }
         },
 
         "GraphQLQueryCartResolver": {
             "Type": "AWS::AppSync::Resolver",
             "DependsOn": "GraphQLSchema",
             "Properties": {
-                "ApiId": { "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ] },
+                "ApiId": { "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"] },
                 "TypeName": "Query",
                 "FieldName": "cart",
-                "DataSourceName": { "Fn::GetAtt": [ "GraphQLDataSource", "Name" ] },
+                "DataSourceName": { "Fn::GetAtt": ["GraphQLDataSource", "Name"] },
                 "RequestMappingTemplateS3Location": "./src/graphqlresolvers/getCart.resolver.velocity",
                 "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/getCart.response.velocity"
             }
         },
 
         "GraphQLQueryProductResolver": {
-          "Type": "AWS::AppSync::Resolver",
-          "DependsOn": ["GraphQLSchema", "GraphQLGetCartProductFunction" , "GraphQLGetCatalogFunction"],
-          "Properties": {
-              "ApiId": { "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ] },
-              "TypeName": "Query",
-              "FieldName": "product",
-              "Kind": "PIPELINE",
-              "PipelineConfig" : {
-                "Functions" : [ { "Fn::GetAtt": [ "GraphQLGetCartProductFunction", "FunctionId" ] }, { "Fn::GetAtt": [ "GraphQLGetCatalogFunction", "FunctionId" ] } ]
-              },
-              "RequestMappingTemplate": { "Fn::Join" : [ "", [
-                "$util.qr($ctx.stash.put(\"cartId\", $ctx.request.headers.Authorization))\r\n",
-                "$util.qr($ctx.stash.put(\"sku\", $ctx.args.sku))\r\n",
-                "$util.qr($ctx.stash.put(\"productSku\", $ctx.args.sku))\r\n",
-                "$util.toJson($ctx)"
-              ] ] },
-              "ResponseMappingTemplate": "$util.toJson($ctx.stash)"
-          }
+            "Type": "AWS::AppSync::Resolver",
+            "DependsOn": ["GraphQLSchema", "GraphQLGetCartProductFunction", "GraphQLGetCatalogFunction"],
+            "Properties": {
+                "ApiId": { "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"] },
+                "TypeName": "Query",
+                "FieldName": "product",
+                "Kind": "PIPELINE",
+                "PipelineConfig": {
+                    "Functions": [
+                        { "Fn::GetAtt": ["GraphQLGetCartProductFunction", "FunctionId"] },
+                        { "Fn::GetAtt": ["GraphQLGetCatalogFunction", "FunctionId"] }
+                    ]
+                },
+                "RequestMappingTemplate": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "$util.qr($ctx.stash.put(\"cartId\", $ctx.request.headers.Authorization))\r\n",
+                            "$util.qr($ctx.stash.put(\"sku\", $ctx.args.sku))\r\n",
+                            "$util.qr($ctx.stash.put(\"productSku\", $ctx.args.sku))\r\n",
+                            "$util.toJson($ctx)"
+                        ]
+                    ]
+                },
+                "ResponseMappingTemplate": "$util.toJson($ctx.stash)"
+            }
         },
 
         "GraphQLaddToCartResolver": {
@@ -722,12 +878,12 @@
             "DependsOn": "GraphQLSchema",
             "Properties": {
                 "ApiId": {
-                    "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ]
+                    "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"]
                 },
                 "TypeName": "Mutation",
                 "FieldName": "addToCart",
                 "DataSourceName": {
-                    "Fn::GetAtt": [ "GraphQLLambdaDataSource", "Name" ]
+                    "Fn::GetAtt": ["GraphQLLambdaDataSource", "Name"]
                 },
                 "RequestMappingTemplateS3Location": "./src/graphqlresolvers/addToCart.resolver.velocity",
                 "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/addToCart.response.velocity"
@@ -739,12 +895,12 @@
             "DependsOn": "GraphQLSchema",
             "Properties": {
                 "ApiId": {
-                    "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ]
+                    "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"]
                 },
                 "TypeName": "Mutation",
                 "FieldName": "updateProduct",
                 "DataSourceName": {
-                    "Fn::GetAtt": [ "GraphQLLambdaDataSource", "Name" ]
+                    "Fn::GetAtt": ["GraphQLLambdaDataSource", "Name"]
                 },
                 "RequestMappingTemplateS3Location": "./src/graphqlresolvers/updateProduct.resolver.velocity",
                 "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/updateProduct.response.velocity"
@@ -756,12 +912,12 @@
             "DependsOn": "GraphQLSchema",
             "Properties": {
                 "ApiId": {
-                    "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ]
+                    "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"]
                 },
                 "TypeName": "Mutation",
                 "FieldName": "removeProduct",
                 "DataSourceName": {
-                    "Fn::GetAtt": [ "GraphQLLambdaDataSource", "Name" ]
+                    "Fn::GetAtt": ["GraphQLLambdaDataSource", "Name"]
                 },
                 "RequestMappingTemplateS3Location": "./src/graphqlresolvers/removeProduct.resolver.velocity",
                 "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/removeProduct.response.velocity"
@@ -773,12 +929,12 @@
             "DependsOn": "GraphQLSchema",
             "Properties": {
                 "ApiId": {
-                    "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ]
+                    "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"]
                 },
                 "TypeName": "Mutation",
                 "FieldName": "clearCart",
                 "DataSourceName": {
-                    "Fn::GetAtt": [ "GraphQLLambdaDataSource", "Name" ]
+                    "Fn::GetAtt": ["GraphQLLambdaDataSource", "Name"]
                 },
                 "RequestMappingTemplateS3Location": "./src/graphqlresolvers/clearCart.resolver.velocity",
                 "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/clearCart.response.velocity"
@@ -790,48 +946,48 @@
             "DependsOn": "GraphQLSchema",
             "Properties": {
                 "ApiId": {
-                    "Fn::GetAtt": [ "GraphQLEndpoint", "ApiId" ]
+                    "Fn::GetAtt": ["GraphQLEndpoint", "ApiId"]
                 },
                 "TypeName": "Mutation",
                 "FieldName": "convertCart",
                 "DataSourceName": {
-                    "Fn::GetAtt": [ "GraphQLLambdaDataSource", "Name" ]
+                    "Fn::GetAtt": ["GraphQLLambdaDataSource", "Name"]
                 },
                 "RequestMappingTemplateS3Location": "./src/graphqlresolvers/convertCart.resolver.velocity",
                 "ResponseMappingTemplateS3Location": "./src/graphqlresolvers/convertCart.response.velocity"
             }
         }
-
     },
 
     "Outputs": {
-
         "UserPoolId": {
-            "Value": { "Ref" : "UserPool" },
+            "Value": { "Ref": "UserPool" },
             "Description": "The Cognito UserPool for the Stack"
         },
 
         "UserPoolClientId": {
-            "Value": { "Ref" : "UserPoolClient" },
+            "Value": { "Ref": "UserPoolClient" },
             "Description": "The Cognito UserPoolClientId for the Stack"
         },
 
         "APIUrl": {
-            "Value": { "Fn::Join" : [ "", [ "https://", { "Ref" : "RestApi" }, ".execute-api.", { "Ref" : "AWS::Region" }, ".amazonaws.com/", { "Ref" : "StageName" }, "/" ] ] },
+            "Value": {
+                "Fn::Join": [
+                    "",
+                    ["https://", { "Ref": "RestApi" }, ".execute-api.", { "Ref": "AWS::Region" }, ".amazonaws.com/", { "Ref": "StageName" }, "/"]
+                ]
+            },
             "Description": "The Endpoint URL of REST API."
         },
 
         "GraphQLUrl": {
-          "Value": { "Fn::GetAtt" : [ "GraphQLEndpoint", "GraphQLUrl" ] },
-          "Description": "The Endpoint URL of GraphQL API."
+            "Value": { "Fn::GetAtt": ["GraphQLEndpoint", "GraphQLUrl"] },
+            "Description": "The Endpoint URL of GraphQL API."
         },
 
         "GraphQLAPIKey": {
-          "Value": { "Fn::GetAtt" : [ "GraphQLAPIKey", "ApiKey" ] },
-          "Description": "The AOIKey of GraphQL API."
+            "Value": { "Fn::GetAtt": ["GraphQLAPIKey", "ApiKey"] },
+            "Description": "The AOIKey of GraphQL API."
         }
-
-
     }
-
 }

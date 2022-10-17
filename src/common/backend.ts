@@ -1,13 +1,13 @@
-import { InfrastructureMetric, ServiceError } from './types';
+import { InfrastructureMetric } from './types';
 
 export enum BackendMetrics {
     DependencyNotConfigured = 'DependencyNotConfigured',
-    DependencyNotAvailable = 'DependencyNotAvailable',
+    DependencyNotAvailable = 'DependencyNotAvailable'
 }
 
 export interface NoSQLTable {
-    getItem(keys: {[key: string]: any}): Promise<Object>;
-    queryItemByHashKey(keys: {[key: string]: any}): Promise<Object[]>;
+    getItem(keys: { [key: string]: any }): Promise<Object>;
+    queryItemByHashKey(keys: { [key: string]: any }): Promise<Object[]>;
     putItem(keys: { [key: string]: any }, object: Object): Promise<boolean>;
     deleteItems(keys: { [key: string]: any }): Promise<boolean>;
 }
